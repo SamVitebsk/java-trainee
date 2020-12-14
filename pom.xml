@@ -6,6 +6,7 @@
 
     <groupId>com.andersen</groupId>
     <artifactId>trainee</artifactId>
+    <version>1</version>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
