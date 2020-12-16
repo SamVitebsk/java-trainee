@@ -1,5 +1,8 @@
 package com.andersen.behavioral.chainOfResponsibility;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class SimpleReportNotifier extends Notifier {
     public SimpleReportNotifier(int priority) {
         super(priority);
@@ -7,6 +10,6 @@ public class SimpleReportNotifier extends Notifier {
 
     @Override
     public void write(String message) {
-        System.out.println("Simple report: " + message);
+        log.info("Simple report: " + message);
     }
 }

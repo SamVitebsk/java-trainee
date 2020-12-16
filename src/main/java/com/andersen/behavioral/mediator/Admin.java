@@ -1,13 +1,13 @@
 package com.andersen.behavioral.mediator;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@AllArgsConstructor
 public class Admin implements User {
     private Chat chat;
     private String name;
-
-    public Admin(Chat chat, String name) {
-        this.chat = chat;
-        this.name = name;
-    }
 
     @Override
     public void sendMessage(String message) {
@@ -16,6 +16,6 @@ public class Admin implements User {
 
     @Override
     public void getMessage(String message) {
-        System.out.println("[admin] " + this.name + " receiving message: " + message);
+        log.info("[admin] " + this.name + " receiving message: " + message);
     }
 }

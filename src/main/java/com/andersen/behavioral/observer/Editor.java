@@ -1,6 +1,7 @@
 package com.andersen.behavioral.observer;
 
 import java.io.File;
+import java.util.Objects;
 
 public class Editor {
     public EventManager events;
@@ -16,7 +17,7 @@ public class Editor {
     }
 
     public void saveFile() throws Exception {
-        if (file != null) {
+        if (Objects.nonNull(file)) {
             events.notify("open", file);
         } else {
             throw new Exception("Open a file");

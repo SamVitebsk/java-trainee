@@ -1,29 +1,32 @@
 package com.andersen.creational.builder;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class Main {
     public static void main(String[] args) {
         Director director = new Director();
         CarBuilder carBuilder = new CarBuilder();
 
         director.constructSportCar(carBuilder);
-        System.out.println(carBuilder.getResult());
+        log.info(carBuilder.getResult().toString());
 
         director.constructCityCar(carBuilder);
-        System.out.println(carBuilder.getResult());
+        log.info(carBuilder.getResult().toString());
 
         director.constructSUV(carBuilder);
-        System.out.println(carBuilder.getResult());
+        log.info(carBuilder.getResult().toString());
 
 
         ManualBuilder manualBuilder = new ManualBuilder();
 
         director.constructSUV(manualBuilder);
-        System.out.println(manualBuilder.getResult());
+        log.info(manualBuilder.getResult().toString());
 
         director.constructCityCar(manualBuilder);
-        System.out.println(manualBuilder.getResult());
+        log.info(manualBuilder.getResult().toString());
 
         director.constructSportCar(manualBuilder);
-        System.out.println(manualBuilder.getResult());
+        log.info(manualBuilder.getResult().toString());
     }
 }

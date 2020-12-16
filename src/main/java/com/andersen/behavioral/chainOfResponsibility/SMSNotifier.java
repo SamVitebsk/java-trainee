@@ -1,5 +1,8 @@
 package com.andersen.behavioral.chainOfResponsibility;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class SMSNotifier extends Notifier {
     public SMSNotifier(int priority) {
         super(priority);
@@ -7,6 +10,6 @@ public class SMSNotifier extends Notifier {
 
     @Override
     public void write(String message) {
-        System.out.println("Sending SMS: " + message);
+        log.info("Sending SMS: " + message);
     }
 }

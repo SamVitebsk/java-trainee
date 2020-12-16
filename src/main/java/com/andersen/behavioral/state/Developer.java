@@ -1,11 +1,10 @@
 package com.andersen.behavioral.state;
 
+import lombok.Setter;
+
+@Setter
 public class Developer {
     private Activity activity;
-
-    public void setActivity(Activity activity) {
-        this.activity = activity;
-    }
 
     public void changeActivity() {
         if (activity instanceof Sleeping) {

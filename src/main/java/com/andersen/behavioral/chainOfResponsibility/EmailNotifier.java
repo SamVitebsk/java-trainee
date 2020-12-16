@@ -1,5 +1,8 @@
 package com.andersen.behavioral.chainOfResponsibility;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class EmailNotifier extends Notifier {
     public EmailNotifier(int priority) {
         super(priority);
@@ -7,6 +10,6 @@ public class EmailNotifier extends Notifier {
 
     @Override
     public void write(String message) {
-        System.out.println("Sending email: " + message);
+        log.info("Sending email: " + message);
     }
 }

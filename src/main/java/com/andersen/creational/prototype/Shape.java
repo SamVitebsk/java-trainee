@@ -13,7 +13,7 @@ public abstract class Shape {
     protected String color;
 
     public Shape(Shape target) {
-        if (target != null) {
+        if (Objects.nonNull(target)) {
             this.x = target.x;
             this.y = target.y;
             this.color = target.color;

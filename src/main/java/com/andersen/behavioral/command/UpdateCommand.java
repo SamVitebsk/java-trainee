@@ -1,11 +1,10 @@
 package com.andersen.behavioral.command;
 
+import lombok.AllArgsConstructor;
+
+@AllArgsConstructor
 public class UpdateCommand implements Command {
     private Database database;
-
-    public UpdateCommand(Database database) {
-        this.database = database;
-    }
 
     @Override
     public void execute() {

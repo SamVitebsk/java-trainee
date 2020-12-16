@@ -1,7 +1,10 @@
 package com.andersen.behavioral.memento;
 
+import lombok.ToString;
+
 import java.time.LocalDate;
 
+@ToString
 public class Project {
     private String version;
     private LocalDate date;
@@ -18,13 +21,5 @@ public class Project {
     public void load(Save save) {
         this.version = save.getVersion();
         this.date = save.getDate();
-    }
-
-    @Override
-    public String toString() {
-        return "Project{" +
-                "version='" + version + '\'' +
-                ", date=" + date +
-                '}';
     }
 }

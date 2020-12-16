@@ -1,11 +1,10 @@
 package com.andersen.behavioral.command;
 
+import lombok.AllArgsConstructor;
+
+@AllArgsConstructor
 public class InsertCommand implements Command {
     private Database database;
-
-    public InsertCommand(Database database) {
-        this.database = database;
-    }
 
     @Override
     public void execute() {

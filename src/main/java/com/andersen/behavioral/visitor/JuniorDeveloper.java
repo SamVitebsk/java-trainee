@@ -1,18 +1,21 @@
 package com.andersen.behavioral.visitor;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class JuniorDeveloper implements Developer {
     @Override
     public void create(ProjectClass projectClass) {
-        System.out.println("Junior create class");
+        log.info("Junior create class");
     }
 
     @Override
     public void create(Database database) {
-        System.out.println("Junior drops database");
+        log.info("Junior drops database");
     }
 
     @Override
     public void create(Test test) {
-        System.out.println("Junior creates test");
+        log.info("Junior creates test");
     }
 }

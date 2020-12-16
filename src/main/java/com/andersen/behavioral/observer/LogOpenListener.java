@@ -1,16 +1,21 @@
 package com.andersen.behavioral.observer;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.File;
 
+@Slf4j
 public class LogOpenListener implements EventListener {
-    private File log;
+    private File logger;
 
     public LogOpenListener(String fileName) {
-        this.log = new File(fileName);
+        this.logger = new File(fileName);
     }
 
     @Override
     public void update(String eventType, File file) {
-        System.out.println("Save to log " + log + ": Someone has performed " + eventType + " operation with the following file: " + file.getName());
+        log.info(
+                "Save to log " + logger + ": Someone has performed " + eventType + " operation with the following file: " + file.getName()
+        );
     }
 }

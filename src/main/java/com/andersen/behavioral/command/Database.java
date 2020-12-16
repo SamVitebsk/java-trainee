@@ -1,19 +1,22 @@
 package com.andersen.behavioral.command;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class Database {
     public void insert() {
-        System.out.println("Inserting record...");
+        log.info("Inserting record...");
     }
 
     public void update() {
-        System.out.println("Updating record...");
+        log.info("Updating record...");
     }
 
     public void select() {
-        System.out.println("Reading record...");
+        log.info("Reading record...");
     }
 
     public void delete() {
-        System.out.println("Deleting record...");
+        log.info("Deleting record...");
     }
 }

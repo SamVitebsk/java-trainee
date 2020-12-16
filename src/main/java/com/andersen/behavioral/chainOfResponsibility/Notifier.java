@@ -1,22 +1,23 @@
 package com.andersen.behavioral.chainOfResponsibility;
 
+import lombok.Setter;
+
+import java.util.Objects;
+
 public abstract class Notifier {
     private int priority;
+    @Setter
     private Notifier nextNotifier;
 
     public Notifier(int priority) {
         this.priority = priority;
     }
 
-    public void setNextNotifier(Notifier nextNotifier) {
-        this.nextNotifier = nextNotifier;
-    }
-
     public void notifyManage(String message, int level) {
         if (level >= priority) {
             write(message);
         }
-        if (nextNotifier != null) {
+        if (Objects.nonNull(nextNotifier)) {
             nextNotifier.notifyManage(message, level);
         }
     }

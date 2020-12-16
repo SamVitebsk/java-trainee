@@ -1,5 +1,8 @@
 package com.andersen.creational.abstractFactory;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class Main {
     public static void main(String[] args) {
         showInfo(new ModernFurnitureFactory());
@@ -11,8 +14,8 @@ public class Main {
         Table table = furnitureFactory.createTable();
         Sofa sofa = furnitureFactory.createSofa();
 
-        System.out.println(chair);
-        System.out.println(table);
-        System.out.println(sofa);
+        log.info(chair.toString());
+        log.info(table.toString());
+        log.info(sofa.toString());
     }
 }

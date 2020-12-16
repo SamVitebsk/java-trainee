@@ -1,16 +1,10 @@
 package com.andersen.creational.abstractFactory;
 
+import lombok.AllArgsConstructor;
+import lombok.ToString;
+
+@ToString
+@AllArgsConstructor
 public abstract class Chair {
     protected String material;
-
-    public Chair(String material) {
-        this.material = material;
-    }
-
-    @Override
-    public String toString() {
-        return "Chair{" +
-                "material='" + material + '\'' +
-                '}';
-    }
 }

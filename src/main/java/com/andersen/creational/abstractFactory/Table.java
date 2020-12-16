@@ -1,16 +1,10 @@
 package com.andersen.creational.abstractFactory;
 
+import lombok.AllArgsConstructor;
+import lombok.ToString;
+
+@ToString
+@AllArgsConstructor
 public abstract class Table {
     private Float length;
-
-    public Table(Float length) {
-        this.length = length;
-    }
-
-    @Override
-    public String toString() {
-        return "Table{" +
-                "length=" + length +
-                '}';
-    }
 }

@@ -1,11 +1,14 @@
 package com.andersen.behavioral.templateMethod;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class Main {
     public static void main(String[] args) {
         PageTemplate welcome = new WelcomePage();
         welcome.renderPage();
 
-        System.out.println("\n==========\n");
+        log.info("\n==========\n");
 
         PageTemplate news = new NewsPage();
         news.renderPage();
