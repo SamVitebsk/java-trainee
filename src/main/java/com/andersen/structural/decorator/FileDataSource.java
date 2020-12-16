@@ -1,13 +1,12 @@
 package com.andersen.structural.decorator;
 
+import lombok.AllArgsConstructor;
+
 import java.io.*;
 
+@AllArgsConstructor
 public class FileDataSource implements DataSource {
     private String fileName;
-
-    public FileDataSource(String fileName) {
-        this.fileName = fileName;
-    }
 
     @Override
     public void writeData(String data) {

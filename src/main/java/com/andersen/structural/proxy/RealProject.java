@@ -1,5 +1,8 @@
 package com.andersen.structural.proxy;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class RealProject implements Project {
     private String url;
 
@@ -9,11 +12,11 @@ public class RealProject implements Project {
     }
 
     private void load() {
-        System.out.println("Loading project from " + url + "...");
+        log.info("Loading project from " + url + "...");
     }
 
     @Override
     public void run() {
-        System.out.println("Running project from " + url + "...");
+        log.info("Running project from " + url + "...");
     }
 }

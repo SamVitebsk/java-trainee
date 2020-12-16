@@ -1,14 +1,16 @@
 package com.andersen.creational.prototype;
 
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.util.Objects;
 
+@Setter
+@NoArgsConstructor
 public abstract class Shape {
     protected Integer x;
     protected Integer y;
     protected String color;
-
-    public Shape() {
-    }
 
     public Shape(Shape target) {
         if (target != null) {
@@ -18,36 +20,12 @@ public abstract class Shape {
         }
     }
 
-    public Integer getX() {
-        return x;
-    }
-
-    public void setX(Integer x) {
-        this.x = x;
-    }
-
-    public Integer getY() {
-        return y;
-    }
-
-    public void setY(Integer y) {
-        this.y = y;
-    }
-
-    public String getColor() {
-        return color;
-    }
-
-    public void setColor(String color) {
-        this.color = color;
-    }
-
     public abstract Shape clone();
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (Objects.isNull(o) || getClass() != o.getClass()) return false;
         Shape shape = (Shape) o;
         return Objects.equals(x, shape.x) &&
                 Objects.equals(y, shape.y) &&

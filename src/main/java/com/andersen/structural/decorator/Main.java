@@ -1,5 +1,8 @@
 package com.andersen.structural.decorator;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class Main {
     public static void main(String[] args) {
         DataSourceDecorator res = new CompressionDecorator(
@@ -8,7 +11,7 @@ public class Main {
                                         )
         );
 
-        res.writeData("test string");
-        System.out.println(res.readData());
+        log.info("test string");
+        log.info(res.readData());
     }
 }

@@ -1,8 +1,11 @@
 package com.andersen.structural.bridge;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class RedColor implements Color {
     @Override
     public void fillColor() {
-        System.out.println("Filling in red color");
+        log.info("Filling in red color");
     }
 }

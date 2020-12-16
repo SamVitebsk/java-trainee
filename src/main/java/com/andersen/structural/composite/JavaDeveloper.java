@@ -1,8 +1,11 @@
 package com.andersen.structural.composite;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class JavaDeveloper implements Developer {
     @Override
     public void writeCode() {
-        System.out.println("Java developer writes code");
+        log.info("Java developer writes code");
     }
 }

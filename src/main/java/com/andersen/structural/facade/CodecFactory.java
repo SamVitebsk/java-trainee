@@ -1,13 +1,16 @@
 package com.andersen.structural.facade;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class CodecFactory {
     public static Codec extract(VideoFile file) {
         String codecName = file.getCodecName();
         if (codecName.equals("mp4")) {
-            System.out.println("extracting mpeg audio...");
+            log.info("extracting mpeg audio...");
             return new MPEG4Codec();
         } else {
-            System.out.println("extracting ogg audio...");
+            log.info("extracting ogg audio...");
             return new OggCompressionCodec();
         }
     }

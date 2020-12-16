@@ -1,27 +1,26 @@
 package com.andersen.structural.flyweight;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import java.awt.*;
 import java.util.Objects;
 
+@Slf4j
+@AllArgsConstructor
 public class Car implements Vehicle {
     private Engine engine;
     private Color color;
 
-    public Car(Engine engine, Color color) {
-        this.engine = engine;
-        this.color = color;
-    }
-
-
     @Override
     public void start() {
-        System.out.println("Car is starting");
+        log.info("Car is starting");
         engine.start();
     }
 
     @Override
     public void stop() {
-        System.out.println("Car is stopping");
+        log.info("Car is stopping");
         engine.stop();
     }
 
@@ -33,7 +32,7 @@ public class Car implements Vehicle {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (Objects.isNull(o) || getClass() != o.getClass()) return false;
         Car car = (Car) o;
         return Objects.equals(engine, car.engine) &&
                 Objects.equals(color, car.color);

@@ -1,11 +1,10 @@
 package com.andersen.structural.decorator;
 
+import lombok.AllArgsConstructor;
+
+@AllArgsConstructor
 public class DataSourceDecorator implements DataSource {
     private DataSource wrapper;
-
-    public DataSourceDecorator(DataSource wrapper) {
-        this.wrapper = wrapper;
-    }
 
     @Override
     public void writeData(String data) {

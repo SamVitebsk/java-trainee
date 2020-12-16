@@ -1,5 +1,8 @@
 package com.andersen.creational.prototype;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class Main {
     public static void main(String[] args) {
         Circle circle = new Circle();
@@ -9,10 +12,10 @@ public class Main {
         circle.setRadius(4);
         Shape clone = circle.clone();
 
-        System.out.println(circle);
-        System.out.println(clone);
-        System.out.println(circle == clone);
-        System.out.println(circle.equals(clone));
+        log.info(circle.toString());
+        log.info(clone.toString());
+        log.info(String.valueOf(circle == clone));
+        log.info(String.valueOf(circle.equals(clone)));
 
         Rectangle rectangle = new Rectangle();
         rectangle.setHeight(11);
@@ -22,9 +25,9 @@ public class Main {
         rectangle.setY(44);
         clone = rectangle.clone();
 
-        System.out.println(rectangle);
-        System.out.println(clone);
-        System.out.println(rectangle == clone);
-        System.out.println(rectangle.equals(clone));
+        log.info(rectangle.toString());
+        log.info(clone.toString());
+        log.info(String.valueOf(rectangle == clone));
+        log.info(String.valueOf(rectangle.equals(clone)));
     }
 }

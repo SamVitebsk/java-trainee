@@ -1,5 +1,8 @@
 package com.andersen.structural.bridge;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class Rectangle extends Shape {
     public Rectangle(Color color) {
         super(color);
@@ -7,7 +10,7 @@ public class Rectangle extends Shape {
 
     @Override
     public void draw() {
-        System.out.println("drawing rectangle");
+        log.info("drawing rectangle");
         color.fillColor();
     }
 }

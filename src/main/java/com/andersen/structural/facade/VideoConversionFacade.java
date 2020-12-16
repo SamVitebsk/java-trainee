@@ -1,10 +1,13 @@
 package com.andersen.structural.facade;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.File;
 
+@Slf4j
 public class VideoConversionFacade {
     public File convertVideo(String fileName, String format) {
-        System.out.println("VideoConversionFacade: conversion started.");
+        log.info("VideoConversionFacade: conversion started.");
         VideoFile file = new VideoFile(fileName);
         Codec sourceCodec = CodecFactory.extract(file);
         Codec codec;
@@ -18,7 +21,7 @@ public class VideoConversionFacade {
         VideoFile buffer = BitrateReader.read(file, codec);
         VideoFile tempResult = BitrateReader.convert(file, codec);
         File result = (new AudioMixer()).fix(tempResult);
-        System.out.println("VideoConversionFacade: conversion completed.");
+        log.info("VideoConversionFacade: conversion completed.");
 
         return result;
     }

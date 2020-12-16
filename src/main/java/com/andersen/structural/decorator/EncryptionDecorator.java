@@ -1,5 +1,8 @@
 package com.andersen.structural.decorator;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class EncryptionDecorator extends DataSourceDecorator {
     public EncryptionDecorator(DataSource wrapper) {
         super(wrapper);
@@ -7,13 +10,13 @@ public class EncryptionDecorator extends DataSourceDecorator {
 
     @Override
     public void writeData(String data) {
-        System.out.println("EncryptionDecorator: encode data");
+        log.info("EncryptionDecorator: encode data");
         super.writeData(data);
     }
 
     @Override
     public String readData() {
-        System.out.println("EncryptionDecorator: decode data");
+        log.info("EncryptionDecorator: decode data");
         return super.readData();
     }
 }

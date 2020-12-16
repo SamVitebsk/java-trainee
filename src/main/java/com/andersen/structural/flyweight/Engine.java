@@ -1,11 +1,14 @@
 package com.andersen.structural.flyweight;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class Engine {
     public void start() {
-        System.out.println("Engine start");
+        log.info("Engine start");
     }
 
     public void stop() {
-        System.out.println("Engine stop");
+        log.info("Engine stop");
     }
 }

@@ -1,5 +1,10 @@
 package com.andersen.structural.proxy;
 
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.Objects;
+
+@Slf4j
 public class ProxyProject implements Project {
     private String url;
     private RealProject realProject;
@@ -10,9 +15,9 @@ public class ProxyProject implements Project {
 
     @Override
     public void run() {
-        System.out.println("Proxy is running");
+        log.info("Proxy is running");
 
-        if (realProject == null) {
+        if (Objects.isNull(realProject)) {
             realProject = new RealProject(url);
         }
 

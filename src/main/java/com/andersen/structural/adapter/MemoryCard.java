@@ -1,11 +1,14 @@
 package com.andersen.structural.adapter;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class MemoryCard {
     public void insert() {
-        System.out.println("insert!");
+        log.info("insert!");
     }
 
     public void copyData() {
-        System.out.println("copy data!");
+        log.info("copy data!");
     }
 }
