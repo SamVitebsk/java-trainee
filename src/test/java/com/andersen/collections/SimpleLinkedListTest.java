@@ -22,8 +22,22 @@ class SimpleLinkedListTest {
     }
 
     @Test
+    void size_onNotEmptyList() {
+        list.addAll(List.of("first", "second", "third"));
+
+        assertEquals(3, list.size());
+    }
+
+    @Test
     void isEmpty_onEmptyList() {
         assertTrue(list.isEmpty());
+    }
+
+    @Test
+    void isEmpty_onNotEmptyList() {
+        list.addAll(List.of("first", "second", "third"));
+
+        assertFalse(list.isEmpty());
     }
 
     @Test
@@ -40,6 +54,7 @@ class SimpleLinkedListTest {
     void iterator() {
         list.addAll(List.of("first", "second", "third"));
         List<String> expected = new SimpleLinkedList<>();
+
         list.forEach(expected::add);
 
         assertArrayEquals(expected.toArray(), list.toArray());
@@ -55,15 +70,56 @@ class SimpleLinkedListTest {
     }
 
     @Test
-    void add() {
+    void add_toTail() {
         list.add("First");
 
         assertEquals(1, list.size());
+        assertEquals("First", list.get(0));
+    }
+
+    @Test
+    void add_byBadIndex() {
+        assertThrows(
+                IndexOutOfBoundsException.class,
+                () -> list.add(123, "Bad")
+        );
+    }
+
+    @Test
+    void add_toTrueIndex() {
+        list.addAll(List.of("first", "second", "third"));
+
+        list.add(1, "0.5");
+
+        assertEquals(4, list.size());
+        assertEquals("0.5", list.get(1));
+    }
+
+    @Test
+    void add_toFirstIndex() {
+        list.addAll(List.of("first", "second", "third"));
+
+        list.add(0, "zero");
+
+        assertEquals(4, list.size());
+        assertEquals("zero", list.get(0));
+    }
+
+    @Test
+    void add_toLastIndex() {
+        list.addAll(List.of("first", "second", "third"));
+
+        list.add(2, "2.5");
+
+        assertEquals(4, list.size());
+        assertEquals("2.5", list.get(2));
+        assertEquals("third", list.get(3));
     }
 
     @Test
     void remove() {
         list.addAll(List.of("first", "second", "third"));
+
         list.remove("first");
 
         assertEquals(2, list.size());
@@ -94,6 +150,7 @@ class SimpleLinkedListTest {
     @Test
     void removeAll() {
         list.addAll(List.of("1", "2", "3", "4", "5", "6", "7"));
+
         list.removeAll(List.of("2", "3", "5"));
 
         assertEquals(4, list.size());
@@ -132,12 +189,68 @@ class SimpleLinkedListTest {
     }
 
     @Test
-    void set() {
+    void set_onBadIndex() {
+        list.addAll(List.of("first", "second", "third"));
+
+        assertThrows(
+                IndexOutOfBoundsException.class,
+                () -> list.set(123, "Bad")
+        );
+    }
+
+    @Test
+    void set_onTrueIndex() {
+        list.addAll(List.of("first", "second", "third"));
+
+        list.set(0, "1");
+        list.set(1, "2");
+        list.set(2, "3");
+
+        assertEquals("1", list.get(0));
+        assertEquals("2", list.get(1));
+        assertEquals("3", list.get(2));
+    }
+
+    @Test
+    void testRemove_goodIndex() {
+        list.addAll(List.of("1", "2", "3", "4", "5", "6", "7"));
+
+        list.remove(2);
+
+        assertEquals(6, list.size());
+        assertFalse(list.contains("3"));
+    }
+
+    @Test
+    void testRemove_badIndex() {
+        list.addAll(List.of("1", "2", "3", "4", "5", "6", "7"));
+
+        assertThrows(
+                IndexOutOfBoundsException.class,
+                () -> list.remove(111)
+        );
 
     }
 
     @Test
-    void testRemove() {
+    void testRemove_firstElement() {
+        list.addAll(List.of("1", "2", "3", "4", "5", "6", "7"));
+
+        list.remove(0);
+
+        assertEquals(6, list.size());
+        assertEquals("2", list.get(0));
+    }
+
+    @Test
+    void testRemove_lastElement() {
+        list.addAll(List.of("1", "2", "3", "4", "5", "6", "7"));
+
+        list.remove(list.size() - 1);
+
+        assertEquals(6, list.size());
+        assertEquals("6", list.get(list.size() - 1));
+
     }
 
     @Test
@@ -172,6 +285,7 @@ class SimpleLinkedListTest {
     @Test
     void subList() {
         list.addAll(List.of("1", "2", "3", "4", "5", "6", "7"));
+
         List<String> res = list.subList(2, 5);
 
         assertEquals(3, res.size());

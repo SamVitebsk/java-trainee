@@ -68,7 +68,7 @@ public class SimpleLinkedList<T> implements List<T> {
 
     @Override
     public <T1> T1[] toArray(T1[] t1s) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -137,7 +137,7 @@ public class SimpleLinkedList<T> implements List<T> {
 
     @Override
     public boolean addAll(int i, Collection<? extends T> collection) {
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -151,7 +151,7 @@ public class SimpleLinkedList<T> implements List<T> {
 
     @Override
     public boolean retainAll(Collection<?> collection) {
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -162,9 +162,7 @@ public class SimpleLinkedList<T> implements List<T> {
 
     @Override
     public T get(int i) {
-        if (i < 0 || i >= size) {
-            throw new IndexOutOfBoundsException(i);
-        }
+        checkIndex(i);
 
         int index = 0;
         Node<T> current = root;
@@ -185,17 +183,69 @@ public class SimpleLinkedList<T> implements List<T> {
 
     @Override
     public T set(int i, T t) {
-        return null;
+        checkIndex(i);
+        int index = 0;
+        Node<T> current = root;
+
+        while (index != i) {
+            current = current.next;
+            index++;
+        }
+
+        current.value = t;
+
+        return get(i);
     }
 
     @Override
-    public void add(int i, T t) {
+    public void add(int i, T value) {
+        checkIndex(i);
 
+        int index = 0;
+        Node<T> current = root;
+
+        while (index != i) {
+            current = current.next;
+            index++;
+        }
+
+        Node<T> newNode = new Node<>(value, current, current.prev);
+
+        if (Objects.isNull(current.prev)) {
+            root = newNode;
+        } else {
+            current.prev.next = newNode;
+            current.prev = newNode;
+        }
+
+        size++;
     }
 
     @Override
     public T remove(int i) {
-        return null;
+        checkIndex(i);
+
+        int index = 0;
+        Node<T> current = root;
+
+        while (index != i) {
+            current = current.next;
+            index++;
+        }
+
+        if (Objects.nonNull(current.prev)) {
+            current.prev.next = current.next;
+        } else {
+            root = current.next;
+        }
+
+        if (Objects.nonNull(current.next)) {
+            current.next.prev = current.prev;
+        }
+
+        size--;
+
+        return current.value;
     }
 
     @Override
@@ -263,6 +313,12 @@ public class SimpleLinkedList<T> implements List<T> {
         }
 
         return resultList;
+    }
+
+    private void checkIndex(int index) {
+        if (index < 0 || index >= size) {
+            throw new IndexOutOfBoundsException(index);
+        }
     }
 
     private static class Node<T> {
