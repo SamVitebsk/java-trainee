@@ -1,11 +1,14 @@
 package com.andersen.chat.client;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.*;
 import java.net.Socket;
 import java.util.Objects;
 
+@Slf4j
 public class Client {
-    static final int PORT = 8088;
+    private static final int PORT = 8088;
 
     public static void main(String[] args) {
         try (
@@ -14,7 +17,7 @@ public class Client {
                 BufferedReader consoleReader = new BufferedReader(new InputStreamReader(System.in));
                 BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()))
         ) {
-            System.out.println("Connected to server");
+            log.info("Connected to server");
 
             while (true) {
                 String message = consoleReader.readLine();
@@ -27,9 +30,9 @@ public class Client {
                     writer.newLine();
                     writer.flush();
 
-                    System.out.println("[client] " + message);
+                    log.info("[client] " + message);
                     String response = reader.readLine();
-                    System.out.println(response);
+                    log.info(response);
                 }
             }
         } catch (IOException e) {
