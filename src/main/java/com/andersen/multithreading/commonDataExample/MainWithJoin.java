@@ -22,7 +22,7 @@ public class MainWithJoin {
         }
 
         map.forEach(
-                (key, value) -> log.info("Thread = " + key + ": value = " + value)
+                (key, value) -> log.info("Thread = {}: value = {}", key, value)
         );
     }
 }

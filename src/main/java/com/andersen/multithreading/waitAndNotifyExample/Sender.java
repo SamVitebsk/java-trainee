@@ -13,7 +13,7 @@ public class Sender implements Runnable {
         String[] packets = {"First", "Second", "Third", "Fourth", "End"};
 
         for (String packet : packets) {
-            log.info("send: " + packet);
+            log.info("send: {}", packet);
             data.send(packet);
 
             try {

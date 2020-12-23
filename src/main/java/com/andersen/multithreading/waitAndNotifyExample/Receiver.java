@@ -11,7 +11,7 @@ public class Receiver implements Runnable {
     @Override
     public void run() {
         for (String message = data.receive(); !"End".equals(message); message = data.receive()) {
-            log.info("receive: " + message);
+            log.info("receive: {}", message);
 
             try {
                 Thread.sleep(1000);

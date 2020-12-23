@@ -6,15 +6,15 @@ import java.util.concurrent.*;
 
 @Slf4j
 public class CreatingThreadsDifferentWays {
-    public static void main() throws ExecutionException, InterruptedException {
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
         Thread simpleThread = new SimpleThread();
         simpleThread.start();
 
-        new Thread(() -> log.info(Thread.currentThread().getName() + ": runnable"))
+        new Thread(() -> log.info("{}: runnable", Thread.currentThread().getName()))
                 .start();
 
         Callable<String> callable = () -> {
-            log.info(Thread.currentThread().getName() + ": callable");
+            log.info("{}: callable", Thread.currentThread().getName());
             return "callable";
         };
         FutureTask<String> futureTask = new FutureTask<>(callable);
@@ -42,7 +42,7 @@ public class CreatingThreadsDifferentWays {
     private static class SimpleThread extends Thread {
         @Override
         public void run() {
-            log.info(Thread.currentThread().getName() + ": extends Thread");
+            log.info("{}: extends Thread", Thread.currentThread().getName());
         }
     }
 }

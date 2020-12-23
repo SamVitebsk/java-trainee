@@ -6,13 +6,13 @@ import lombok.extern.slf4j.Slf4j;
 public class Main {
     public static void main(String[] args) throws InterruptedException {
         Runnable runnable = () -> {
-            log.info(Thread.currentThread().getName() + ": start");
+            log.info("{}: start", Thread.currentThread().getName());
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
-                log.error("Error: " + Thread.currentThread().getName());
+                log.error("Error: {}", Thread.currentThread().getName());
             }
-            log.info(Thread.currentThread().getName() + ": end" );
+            log.info("{}: end", Thread.currentThread().getName());
         };
 
         Thread thread1 = new Thread(runnable);
