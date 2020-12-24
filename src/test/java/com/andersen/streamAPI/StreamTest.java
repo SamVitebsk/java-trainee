@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -245,5 +246,21 @@ class StreamTest {
 
         numbers.parallelStream().map(num -> num * num).forEach(num ->log.info("for each: {}", num));
         numbers.parallelStream().map(num -> num * num).forEachOrdered(num ->log.info("for each ordered: {}", num));
+    }
+
+    @Test
+    void advancedTask() {
+        List<Integer> numbers = new ArrayList<>();
+        numbers.add(1);
+        numbers.add(2);
+        numbers.add(3);
+
+        Stream<Integer> stream = numbers.stream();
+
+        numbers.add(4);
+        numbers.add(5);
+        numbers.add(6);
+
+        stream.forEachOrdered(num -> log.info("{}", num));
     }
 }
