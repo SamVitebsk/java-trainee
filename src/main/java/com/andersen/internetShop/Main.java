@@ -24,39 +24,40 @@ public class Main {
     }
 
     private static void action(Long userInput) {
-        if (userInput == 1) {
-            controller.showProductList();
-        } else if (userInput == 2) {
-            controller.showProductList();
-            controller.addProductToBucket(
-                    askQuestion("Select a product:")
-            );
-
-            System.out.println("*** Product added to bucket ***");
-        } else if (userInput == 3) {
-            boolean notEmpty = controller.showProductsInTheBucket();
-
-            if (notEmpty) {
-                controller.deleteProductFromTheBucket(
-                        askQuestion("Select a product:")
-                );
-                System.out.println("*** Product was removed ***");
-            } else {
-                System.out.println("*** Bucket is empty ***");
-            }
-        } else if (userInput == 4) {
-            boolean notEmpty = controller.showProductsInTheBucket();
-            if (!notEmpty) {
-                System.out.println("*** Bucket is empty ***");
-            }
-        } else if (userInput == 5) {
-            controller.clearBucket();
-            System.out.println("*** Bucket cleared ***");
-        } else if (userInput == 0) {
-            controller.exit();
-        } else {
-            controller.showProductList();
+        switch (userInput.intValue()) {
+            case 2:
+                controller.showProductList();
+                controller.addProductToBucket(
+                        askQuestion("Select a product:"));
+                break;
+            case 3:
+                boolean notEmpty = controller.showProductsInTheBucket();
+                if (notEmpty) {
+                    controller.deleteProductFromTheBucket(
+                            askQuestion("Select a product:")
+                    );
+                    System.out.println("*** Product was removed ***");
+                } else {
+                    System.out.println("*** Bucket is empty ***");
+                }
+                break;
+            case 4:
+                notEmpty = controller.showProductsInTheBucket();
+                if (!notEmpty) {
+                    System.out.println("*** Bucket is empty ***");
+                }
+                break;
+            case 5:
+                controller.clearBucket();
+                System.out.println("*** Bucket cleared ***");
+                break;
+            case 0:
+                controller.exit();
+                break;
+            default:
+                controller.showProductList();
         }
+
     }
 
     private static Long askQuestion(String question) {
