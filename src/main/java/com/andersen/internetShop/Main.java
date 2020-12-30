@@ -74,7 +74,7 @@ public class Main {
                 } else {
                     Currency currency = CurrencyFactory.getCurrency(currencyCode);
                     BigDecimal total = controller.makeOrder(currency);
-                    System.out.printf("*** Order accepted, you must pay %s %s, check email ***\n", CurrencyCode.BYN, total);
+                    log.info("*** Order accepted, you must pay {} {}, check email ***", CurrencyCode.BYN, total);
                 }
                 break;
             case 0:
