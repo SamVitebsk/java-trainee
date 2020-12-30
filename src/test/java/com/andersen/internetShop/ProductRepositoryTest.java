@@ -13,6 +13,6 @@ class ProductRepositoryTest {
     void getAll() {
         List<Product> products = repository.getAll();
 
-        assertEquals(6, products.size());
+        assertEquals(9, products.size());
     }
 }
