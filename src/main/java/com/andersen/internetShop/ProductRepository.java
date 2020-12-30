@@ -24,7 +24,7 @@ public class ProductRepository {
         return products;
     }
 
-    public Product getById(Long id) {
+    public Product getById(Integer id) {
         return products.stream()
                 .filter(product -> product.getId().equals(id))
                 .findFirst()

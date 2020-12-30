@@ -43,7 +43,7 @@ public class Main {
                 int countProducts = askQuestion("Count of products:");
                 boolean wasAdded = controller.addProductToBucket(productId, countProducts);
                 if (wasAdded) {
-                    System.out.println("*** Product was added ***");
+                    log.info("*** Product was added ***");
                 }
                 break;
             case 3:
@@ -52,25 +52,25 @@ public class Main {
                 countProducts = askQuestion("Count of products:");
                 boolean wasRemoved = controller.deleteProductFromTheBucket(productId, countProducts);
                 if (wasRemoved) {
-                    System.out.println("*** Product was removed ***");
+                    log.info("*** Product was removed ***");
                 }
                 break;
             case 4:
                 boolean notEmpty = controller.showProductsInTheBucket();
                 if (!notEmpty) {
-                    System.out.println("*** Bucket is empty ***");
+                    log.info("*** Bucket is empty ***");
                 }
                 break;
             case 5:
                 controller.clearBucket();
-                System.out.println("*** Bucket cleared ***");
+                log.info("*** Bucket cleared ***");
                 break;
             case 6:
                 MenuView.showCurrencyListMenu();
                 Integer currencyNumber = askQuestion("Select a currency:");
                 CurrencyCode currencyCode = CurrencyFactory.convertCurrencyIndexToCurrencyCode(currencyNumber);
                 if (Objects.isNull(currencyCode)) {
-                    System.out.println("*** Order canceled ***");
+                    log.info("*** Order canceled ***");
                 } else {
                     Currency currency = CurrencyFactory.getCurrency(currencyCode);
                     BigDecimal total = controller.makeOrder(currency);
@@ -88,11 +88,11 @@ public class Main {
     }
 
     private static Integer askQuestion(String question) {
-        System.out.println(question);
+        log.info(question);
         try {
             return Integer.parseInt(reader.readLine());
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Parse to int exception: {}", e.getMessage());
             return -1;
         }
     }

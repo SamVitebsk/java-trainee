@@ -5,9 +5,11 @@ import com.andersen.internetShop.exceptions.NegativeNumberProductsException;
 import com.andersen.internetShop.exceptions.ProductNotFoundException;
 import com.andersen.internetShop.exceptions.SoManyProductsException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
 
+@Slf4j
 @RequiredArgsConstructor
 public class MainController {
     private final Warehouse warehouse;
@@ -15,7 +17,7 @@ public class MainController {
 
     public void showProductList() {
         warehouse.getProducts()
-                .forEach((product, count) -> System.out.println(product + ": count = " + count));
+                .forEach((product, count) -> log.info("{}: count = {}", product, count));
     }
 
     public boolean addProductToBucket(Integer productId, Integer count) {
@@ -23,17 +25,17 @@ public class MainController {
             bucket.addProduct(warehouse.getById(productId, count), count);
             return true;
         } catch (SoManyProductsException e) {
-            System.out.println("*** Not enough products in warehouse ***");
+            log.info("*** Not enough products in warehouse ***");
             return false;
         } catch (ProductNotFoundException e) {
-            System.out.println("*** Product not found ***");
+            log.info("*** Product not found ***");
             return false;
         }
     }
 
     public boolean deleteProductFromTheBucket(Integer productId, Integer count) {
         if (bucket.isEmpty()) {
-            System.out.println("*** Bucket is empty, nothing to remove ***");
+            log.info("*** Bucket is empty, nothing to remove ***");
             return false;
         }
 
@@ -41,10 +43,10 @@ public class MainController {
             bucket.removeProduct(warehouse.getById(productId), count);
             return true;
         } catch (ProductNotFoundException e) {
-            System.out.println("*** Product not found ***");
+            log.info("*** Product not found ***");
             return false;
         } catch (NegativeNumberProductsException e) {
-            System.out.printf("*** Wrong number of products: %d ***", count);
+            log.info("*** Wrong number of products: {} ***", count);
             return false;
         }
     }
@@ -52,7 +54,7 @@ public class MainController {
     public boolean showProductsInTheBucket() {
         if (! bucket.isEmpty()) {
             bucket.getAll()
-                    .forEach((product, count) -> System.out.println(product + ": count = " + count));
+                    .forEach((product, count) -> log.info("{}: count = {}", product, count));
             return true;
         }
 
@@ -64,7 +66,7 @@ public class MainController {
     }
 
     public void exit() {
-        System.out.println("Good bye");
+        log.info("Good bye");
     }
 
     public BigDecimal makeOrder(Currency currency) {
