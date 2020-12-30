@@ -1,57 +1,84 @@
 package com.andersen.internetShop;
 
+import com.andersen.internetShop.currency.Currency;
+import com.andersen.internetShop.currency.CurrencyCode;
+import com.andersen.internetShop.currency.CurrencyFactory;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
+import java.util.Objects;
 
 @Slf4j
 public class Main {
-    private static BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-    private static MainController controller = new MainController(
-            new ProductRepository(),
-            new Bucket()
-    );
+    private static final String BUCKET_FILE_NAME = "bucket.txt";
+    private static final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    private static final MainController controller;
+    private static final Bucket bucket;
+    private static final Warehouse warehouse;
+
+    static {
+        bucket = BucketSaver.load(BUCKET_FILE_NAME);
+        warehouse = new Warehouse();
+        controller = new MainController(warehouse, bucket);
+    }
 
     public static void main(String[] args) {
-        Long userInput;
+        warehouse.boot();
+        Integer userInput;
 
         do {
-            showMainMenu();
+            MenuView.showMainMenu();
             userInput = askQuestion("Select num from 0 to 5");
             action(userInput);
         } while (userInput != 0);
     }
 
-    private static void action(Long userInput) {
-        switch (userInput.intValue()) {
+    private static void action(Integer userInput) {
+        switch (userInput) {
             case 2:
                 controller.showProductList();
-                controller.addProductToBucket(
-                        askQuestion("Select a product:"));
+                Integer productId = askQuestion("Select a product:");
+                int countProducts = askQuestion("Count of products:");
+                boolean wasAdded = controller.addProductToBucket(productId, countProducts);
+                if (wasAdded) {
+                    log.info("*** Product was added ***");
+                }
                 break;
             case 3:
-                boolean notEmpty = controller.showProductsInTheBucket();
-                if (notEmpty) {
-                    controller.deleteProductFromTheBucket(
-                            askQuestion("Select a product:")
-                    );
-                    System.out.println("*** Product was removed ***");
-                } else {
-                    System.out.println("*** Bucket is empty ***");
+                controller.showProductsInTheBucket();
+                productId = askQuestion("Select a product:");
+                countProducts = askQuestion("Count of products:");
+                boolean wasRemoved = controller.deleteProductFromTheBucket(productId, countProducts);
+                if (wasRemoved) {
+                    log.info("*** Product was removed ***");
                 }
                 break;
             case 4:
-                notEmpty = controller.showProductsInTheBucket();
+                boolean notEmpty = controller.showProductsInTheBucket();
                 if (!notEmpty) {
-                    System.out.println("*** Bucket is empty ***");
+                    log.info("*** Bucket is empty ***");
                 }
                 break;
             case 5:
                 controller.clearBucket();
-                System.out.println("*** Bucket cleared ***");
+                log.info("*** Bucket cleared ***");
+                break;
+            case 6:
+                MenuView.showCurrencyListMenu();
+                Integer currencyNumber = askQuestion("Select a currency:");
+                CurrencyCode currencyCode = CurrencyFactory.convertCurrencyIndexToCurrencyCode(currencyNumber);
+                if (Objects.isNull(currencyCode)) {
+                    log.info("*** Order canceled ***");
+                } else {
+                    Currency currency = CurrencyFactory.getCurrency(currencyCode);
+                    BigDecimal total = controller.makeOrder(currency);
+                    log.info("*** Order accepted, you must pay {} {}, check email ***", CurrencyCode.BYN, total);
+                }
                 break;
             case 0:
+                BucketSaver.saveBucket(bucket, BUCKET_FILE_NAME);
                 controller.exit();
                 break;
             default:
@@ -60,24 +87,13 @@ public class Main {
 
     }
 
-    private static Long askQuestion(String question) {
-        System.out.println(question);
+    private static Integer askQuestion(String question) {
+        log.info(question);
         try {
-            return Long.parseLong(reader.readLine());
+            return Integer.parseInt(reader.readLine());
         } catch (Exception e) {
-            log.error(e.getMessage());
-            return 1L;
+            log.error("Parse to int exception: {}", e.getMessage());
+            return -1;
         }
-    }
-
-    private static void showMainMenu() {
-        System.out.println("************* MENU *************");
-        System.out.println("1. Show product list");
-        System.out.println("2. Add product to the bucket");
-        System.out.println("3. Delete product from the bucket");
-        System.out.println("4. Show products in the bucket");
-        System.out.println("5. Clear bucket");
-        System.out.println("0. Exit");
-        System.out.println("*********************************");
     }
 }

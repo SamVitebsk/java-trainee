@@ -13,7 +13,10 @@ public class ProductRepository {
                 new Product("water", BigDecimal.valueOf(5), ProductCategory.FOOD),
                 new Product("apple", BigDecimal.valueOf(10), ProductCategory.FOOD),
                 new Product("bread", BigDecimal.valueOf(4), ProductCategory.FOOD),
-                new Product("meat", BigDecimal.valueOf(15), ProductCategory.FOOD)
+                new Product("meat", BigDecimal.valueOf(15), ProductCategory.FOOD),
+                new LimitedShelfLifeProduct("cheese", BigDecimal.valueOf(40), ProductCategory.MILK),
+                new LimitedShelfLifeProduct("oil", BigDecimal.valueOf(30), ProductCategory.MILK),
+                new LimitedShelfLifeProduct("yogurt", BigDecimal.valueOf(20), ProductCategory.MILK)
         );
     }
 
@@ -21,7 +24,7 @@ public class ProductRepository {
         return products;
     }
 
-    public Product getById(Long id) {
+    public Product getById(Integer id) {
         return products.stream()
                 .filter(product -> product.getId().equals(id))
                 .findFirst()
