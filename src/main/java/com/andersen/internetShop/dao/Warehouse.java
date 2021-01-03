@@ -1,7 +1,11 @@
-package com.andersen.internetShop;
+package com.andersen.internetShop.dao;
 
+import com.andersen.internetShop.dao.LimitedShelfLifeProduct;
+import com.andersen.internetShop.dao.Product;
+import com.andersen.internetShop.dao.ProductCategory;
 import com.andersen.internetShop.exceptions.ProductNotFoundException;
 import com.andersen.internetShop.exceptions.SoManyProductsException;
+import com.andersen.internetShop.utils.ExpiryDate;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -11,7 +15,12 @@ import java.util.Map;
 import java.util.Objects;
 
 public class Warehouse {
-    private Map<Product, Integer> products = new LinkedHashMap<>();
+    private final Map<Product, Integer> products;
+
+    public Warehouse() {
+        products = new LinkedHashMap<>();
+        boot();
+    }
 
     public void addProduct(Product product, Integer count) {
         count = checkCount(count);

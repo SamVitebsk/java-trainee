@@ -1,6 +1,7 @@
-package com.andersen.internetShop;
+package com.andersen.internetShop.dao;
 
 import com.andersen.internetShop.currency.Currency;
+import com.andersen.internetShop.dao.Product;
 import com.andersen.internetShop.exceptions.NegativeNumberProductsException;
 import com.andersen.internetShop.exceptions.ProductNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -10,10 +11,18 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 @Slf4j
 public class Bucket implements Serializable {
-    private final Map<Product, Integer> products = new HashMap<>();
+    private final UUID userId;
+    private final Map<Product, Integer> products;
+
+    public Bucket(UUID userId) {
+        this.userId = userId;
+        this.products = new HashMap<>();
+    }
+
 
     public void addProduct(Product product, Integer count) {
         checkInput(product, count);

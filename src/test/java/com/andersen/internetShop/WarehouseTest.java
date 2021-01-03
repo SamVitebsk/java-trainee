@@ -1,5 +1,8 @@
 package com.andersen.internetShop;
 
+import com.andersen.internetShop.dao.Product;
+import com.andersen.internetShop.dao.ProductCategory;
+import com.andersen.internetShop.dao.Warehouse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

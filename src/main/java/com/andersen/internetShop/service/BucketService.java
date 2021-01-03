@@ -1,5 +1,7 @@
-package com.andersen.internetShop;
+package com.andersen.internetShop.service;
 
+import com.andersen.internetShop.dao.Bucket;
+import com.andersen.internetShop.dao.Warehouse;
 import com.andersen.internetShop.currency.Currency;
 import com.andersen.internetShop.exceptions.NegativeNumberProductsException;
 import com.andersen.internetShop.exceptions.ProductNotFoundException;
@@ -11,7 +13,7 @@ import java.math.BigDecimal;
 
 @Slf4j
 @RequiredArgsConstructor
-public class MainController {
+public class BucketService {
     private final Warehouse warehouse;
     private final Bucket bucket;
 
@@ -63,10 +65,6 @@ public class MainController {
 
     public void clearBucket() {
         bucket.clear();
-    }
-
-    public void exit() {
-        log.info("Good bye");
     }
 
     public BigDecimal makeOrder(Currency currency) {

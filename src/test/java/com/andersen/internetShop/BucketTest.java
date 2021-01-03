@@ -2,20 +2,26 @@ package com.andersen.internetShop;
 
 import com.andersen.internetShop.currency.CurrencyCode;
 import com.andersen.internetShop.currency.CurrencyFactory;
+import com.andersen.internetShop.dao.Bucket;
+import com.andersen.internetShop.dao.Product;
+import com.andersen.internetShop.dao.ProductCategory;
+import com.andersen.internetShop.dao.User;
 import com.andersen.internetShop.exceptions.ProductNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class BucketTest {
     Bucket bucket;
-    Product product = new Product("test", BigDecimal.TEN, ProductCategory.NOT_FOOD);;
+    Product product = new Product("test", BigDecimal.TEN, ProductCategory.NOT_FOOD);
+    User user = new User(UUID.randomUUID(), "test", "test");
     @BeforeEach
     void setUp() {
-        bucket = new Bucket();
+        bucket = new Bucket(user.getId());
     }
 
     @Test
