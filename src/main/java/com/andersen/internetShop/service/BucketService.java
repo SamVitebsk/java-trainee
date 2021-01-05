@@ -56,18 +56,18 @@ public class BucketService {
         }
     }
 
-    public boolean showProductsInTheBucket() {
-        if (! bucketRepository.isEmpty()) {
-            bucketRepository.getAll()
-                    .forEach((product, count) -> log.info("{}: count = {}", product, count));
-            return true;
-        }
-
-        return false;
+    public void showProductsInTheBucket() {
+        bucketRepository.getAll()
+                .forEach((product, count) -> log.info("{}: count = {}", product, count));
     }
 
     public void clearBucket() {
         bucketRepository.clear();
+        log.info("*** Bucket cleared ***");
+    }
+
+    public boolean bucketIsEmpty() {
+        return bucketRepository.isEmpty();
     }
 
     public BigDecimal getTotal(Currency currency) {

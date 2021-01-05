@@ -33,37 +33,22 @@ public class AppController {
 
         switch (userInput) {
             case 2:
-                bucketService.showProductList();
-                Integer productId = getIntAnswer("Select a product ID:");
-                int countProducts = getIntAnswer("Count of products:");
-                boolean wasAdded = bucketService.addProductToBucket(productId, countProducts);
-                if (wasAdded) {
-                    log.info("*** Product was added ***");
-                }
+                addProductToBucket();
                 break;
             case 3:
                 deleteProductFromBucket();
                 break;
             case 4:
-                boolean notEmpty = bucketService.showProductsInTheBucket();
-                if (!notEmpty) {
-                    log.info("*** Bucket is empty ***");
-                }
+                showProductsInBucket();
                 break;
             case 5:
                 bucketService.clearBucket();
-                log.info("*** Bucket cleared ***");
                 break;
             case 6:
                 makeOrder(user);
                 break;
             case 7:
-                List<Order> orders = orderService.getOrdersHistory(user);
-                if (orders.isEmpty()) {
-                    log.info("***** Orders not found *****");
-                } else {
-                    orders.forEach(order -> log.info("{}", order));
-                }
+                showOrderHistory(user);
                 break;
             case 8:
                 acceptSavedOrder(user);
@@ -73,6 +58,34 @@ public class AppController {
                 break;
             default:
                 bucketService.showProductList();
+                break;
+        }
+    }
+
+    private void showOrderHistory(User user) {
+        List<Order> orders = orderService.getOrdersHistory(user);
+        if (orders.isEmpty()) {
+            log.info("***** Orders not found *****");
+        } else {
+            orders.forEach(order -> log.info("{}", order));
+        }
+    }
+
+    private void showProductsInBucket() {
+        if (bucketService.bucketIsEmpty()) {
+            log.info("*** Bucket is empty ***");
+        } else {
+            bucketService.showProductsInTheBucket();
+        }
+    }
+
+    private void addProductToBucket() {
+        bucketService.showProductList();
+        Integer productId = getIntAnswer("Select a product ID:");
+        int countProducts = getIntAnswer("Count of products:");
+        boolean wasAdded = bucketService.addProductToBucket(productId, countProducts);
+        if (wasAdded) {
+            log.info("*** Product was added ***");
         }
     }
 
@@ -103,12 +116,12 @@ public class AppController {
             Currency currency = CurrencyFactory.getCurrency(currencyCode);
             BigDecimal total = bucketService.getTotal(currency);
             log.info("*** Total: {} ***", total);
-            Integer confirm = getIntAnswer(" Confirm? (1 - Yes, 0 - No)");
-            if (confirm.equals(1)) {
+            int confirm = getIntAnswer(" Confirm? (1 - Yes, 0 - No)");
+            if (confirm == 1) {
                 orderService.makeOrder(user, total, true);
                 bucketService.clearBucket();
                 log.info("*** Order accepted, you must pay {} {}, check email ***", CurrencyCode.BYN, total);
-            } else if (confirm.equals(0)) {
+            } else if (confirm == 0) {
                 Integer saveOrder = getIntAnswer("Save order? (1 - Yes, 0 - No)");
                 if (saveOrder.equals(1)) {
                     orderService.makeOrder(user, total, false);
@@ -125,10 +138,10 @@ public class AppController {
     }
 
     private void deleteProductFromBucket() {
-        boolean notEmpty = bucketService.showProductsInTheBucket();
-        if (!notEmpty) {
+        if (bucketService.bucketIsEmpty()) {
             log.info("*** Bucket is empty ***");
         } else {
+            bucketService.showProductsInTheBucket();
             Integer productId = getIntAnswer("Select a product ID:");
             Integer countProducts = getIntAnswer("Count of products:");
             boolean wasRemoved = bucketService.deleteProductFromTheBucket(productId, countProducts);
@@ -139,34 +152,33 @@ public class AppController {
     }
 
     public User authAction(Integer userInput) {
+        User user = null;
         switch (userInput) {
             case 1:
                 String login = getStringAnswer("Login:");
                 String password = getStringAnswer("Password:");
-                User user = authService.login(login, password);
+                user = authService.login(login, password);
                 if (Objects.nonNull(user)) {
                     log.info("*** Welcome, {}! ***", login);
-                    return user;
                 } else {
                     log.info("*** Invalid login or password ***");
-                    return null;
                 }
+                return user;
             case 2:
                 login = getStringAnswer("Login:");
                 password = getStringAnswer("Password:");
                 user = authService.registration(login, password);
                 if (Objects.nonNull(user)) {
                     log.info("*** Welcome, {}! ***", login);
-                    return user;
                 } else {
                     log.info("*** Invalid login or password ***");
-                    return null;
                 }
+                return user;
             case 0:
                 authService.exit();
                 System.exit(0);
             default:
-                return null;
+                return user;
         }
     }
 
