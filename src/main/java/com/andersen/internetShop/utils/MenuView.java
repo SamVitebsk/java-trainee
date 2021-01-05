@@ -12,6 +12,8 @@ public class MenuView {
         log.info("4. Show products in the bucket");
         log.info("5. Clear bucket");
         log.info("6. Make an order");
+        log.info("7. Orders history");
+        log.info("8. Not accepted orders");
         log.info("0. Exit");
         log.info("*********************************");
     }

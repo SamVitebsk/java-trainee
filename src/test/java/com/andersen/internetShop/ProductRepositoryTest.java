@@ -30,13 +30,13 @@ class ProductRepositoryTest {
 
     @Test
     void getByIdFromDb() {
-        Product product = repository.getByIdFromDb(11);
+        Product product = repository.getById(11);
         log.info("{}", product);
     }
 
     @Test
     void getAllFromDb() {
-        List<Product> products = repository.getAllFromDb();
+        List<Product> products = repository.getAll();
 
         products.forEach(System.out::println);
 

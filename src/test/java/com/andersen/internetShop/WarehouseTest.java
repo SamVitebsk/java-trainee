@@ -2,6 +2,7 @@ package com.andersen.internetShop;
 
 import com.andersen.internetShop.dao.Product;
 import com.andersen.internetShop.dao.ProductCategory;
+import com.andersen.internetShop.dao.ProductRepository;
 import com.andersen.internetShop.dao.Warehouse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,7 +12,7 @@ import java.math.BigDecimal;
 import static org.junit.jupiter.api.Assertions.*;
 
 class WarehouseTest {
-    private Warehouse warehouse = new Warehouse();
+    private Warehouse warehouse = new Warehouse(new ProductRepository());
     private Product product = new Product("test product", BigDecimal.TEN, ProductCategory.NOT_FOOD);
 
     @BeforeEach

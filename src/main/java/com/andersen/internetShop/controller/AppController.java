@@ -1,20 +1,18 @@
 package com.andersen.internetShop.controller;
 
-import com.andersen.internetShop.dao.Bucket;
-import com.andersen.internetShop.dao.User;
-import com.andersen.internetShop.dao.Warehouse;
 import com.andersen.internetShop.currency.Currency;
 import com.andersen.internetShop.currency.CurrencyCode;
 import com.andersen.internetShop.currency.CurrencyFactory;
+import com.andersen.internetShop.dao.*;
 import com.andersen.internetShop.service.AuthService;
 import com.andersen.internetShop.service.BucketService;
 import com.andersen.internetShop.service.OrderService;
-import com.andersen.internetShop.utils.BucketSaver;
 import com.andersen.internetShop.utils.MenuView;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Objects;
 
 import static com.andersen.internetShop.utils.Questioner.getIntAnswer;
@@ -27,7 +25,6 @@ public class AppController {
     private final Warehouse warehouse;
     private final OrderService orderService;
     private BucketService bucketService;
-    private Bucket bucket;
 
     public void action(Integer userInput, User user) {
         if (Objects.isNull(bucketService)) {
@@ -37,7 +34,7 @@ public class AppController {
         switch (userInput) {
             case 2:
                 bucketService.showProductList();
-                Integer productId = getIntAnswer("Select a product:");
+                Integer productId = getIntAnswer("Select a product ID:");
                 int countProducts = getIntAnswer("Count of products:");
                 boolean wasAdded = bucketService.addProductToBucket(productId, countProducts);
                 if (wasAdded) {
@@ -45,16 +42,20 @@ public class AppController {
                 }
                 break;
             case 3:
-                bucketService.showProductsInTheBucket();
-                productId = getIntAnswer("Select a product:");
-                countProducts = getIntAnswer("Count of products:");
-                boolean wasRemoved = bucketService.deleteProductFromTheBucket(productId, countProducts);
-                if (wasRemoved) {
-                    log.info("*** Product was removed ***");
+                boolean notEmpty = bucketService.showProductsInTheBucket();
+                if (!notEmpty) {
+                    log.info("*** Bucket is empty ***");
+                } else {
+                    productId = getIntAnswer("Select a product ID:");
+                    countProducts = getIntAnswer("Count of products:");
+                    boolean wasRemoved = bucketService.deleteProductFromTheBucket(productId, countProducts);
+                    if (wasRemoved) {
+                        log.info("*** Product was removed ***");
+                    }
                 }
                 break;
             case 4:
-                boolean notEmpty = bucketService.showProductsInTheBucket();
+                notEmpty = bucketService.showProductsInTheBucket();
                 if (!notEmpty) {
                     log.info("*** Bucket is empty ***");
                 }
@@ -71,25 +72,53 @@ public class AppController {
                     log.info("*** Order canceled ***");
                 } else {
                     Currency currency = CurrencyFactory.getCurrency(currencyCode);
-                    BigDecimal total = bucketService.makeOrder(currency);
+                    BigDecimal total = bucketService.getTotal(currency);
                     log.info("*** Total: {} ***", total);
                     Integer confirm = getIntAnswer(" Confirm? (1 - Yes, 0 - No)");
                     if (confirm.equals(1)) {
                         orderService.makeOrder(user, total, true);
+                        bucketService.clearBucket();
                         log.info("*** Order accepted, you must pay {} {}, check email ***", CurrencyCode.BYN, total);
                     } else if (confirm.equals(0)) {
-                        Integer saveOrder = getIntAnswer("Save order?");
+                        Integer saveOrder = getIntAnswer("Save order? (1 - Yes, 0 - No)");
                         if (saveOrder.equals(1)) {
                             orderService.makeOrder(user, total, false);
                             log.info("*** Order saved ***");
+                        } else {
+                            bucketService.clearBucket();
+                            log.info("*** Order canceled ***");
                         }
                     } else {
+                        bucketService.clearBucket();
                         log.info("*** Order canceled ***");
                     }
                 }
                 break;
+            case 7:
+                List<Order> orders = orderService.getOrdersHistory(user);
+                if (orders.isEmpty()) {
+                    log.info("***** Orders not found *****");
+                } else {
+                    orders.forEach(order -> log.info("{}", order));
+                }
+                break;
+            case 8:
+                orders = orderService.getNotAcceptedOrders(user);
+                if (orders.isEmpty()) {
+                    log.info("***** Orders not found *****");
+                } else {
+                    orders.forEach(order -> log.info("{}", order));
+                    Integer orderId = getIntAnswer("Order id:");
+                    Integer accept = getIntAnswer("Accept order? (1 - Yes, 0 - No):");
+                    if (accept == 1) {
+                        orderService.acceptOrder(user, orderId);
+                        log.info("***** Order accepted *****");
+                    } else {
+                        log.info("***** Order canceled *****");
+                    }
+                }
+                break;
             case 0:
-                BucketSaver.saveBucket(bucket, user);
                 authService.exit();
                 break;
             default:
@@ -144,7 +173,9 @@ public class AppController {
     }
 
     private void initBucketController(User user) {
-        bucket = BucketSaver.load(user);
-        bucketService = new BucketService(warehouse, bucket);
+        bucketService = new BucketService(
+                warehouse,
+                new BucketRepository(user, new ProductRepository())
+        );
     }
 }

@@ -1,6 +1,5 @@
 package com.andersen.internetShop.dao;
 
-import com.andersen.internetShop.utils.Connect;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 
@@ -9,8 +8,12 @@ import java.util.UUID;
 
 @Slf4j
 public class UserRepository {
+    private static final String DB_USER = "admin";
+    private static final String DB_PASSWORD = "admin";
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/shop?serverTimezone=Europe/Moscow";
+
     public User getByLoginAndPassword(String login, String password) {
-        try (Connection connection = Connect.getConnection()) {
+        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
             PreparedStatement ps = connection.prepareStatement("select * from customers where login = ? and password = ?");
 
             ps.setString(1, login);
@@ -32,7 +35,7 @@ public class UserRepository {
     }
 
     public User create(String login, String password) {
-        try (Connection connection = Connect.getConnection()) {
+        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
             PreparedStatement ps = connection.prepareStatement("insert into customers (id, login, password) values (?, ?, ?)");
             String id = UUID.randomUUID().toString();
             ps.setString(1, id);
