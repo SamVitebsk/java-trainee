@@ -12,7 +12,6 @@ import java.util.UUID;
 public class Order {
     private Integer id;
     private LocalDate createdAt;
-//    private Bucket bucket;
     private UUID userId;
     private BigDecimal total;
     private boolean accepted;

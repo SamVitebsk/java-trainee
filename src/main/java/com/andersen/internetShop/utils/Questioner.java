@@ -10,22 +10,26 @@ public class Questioner {
     private static final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
     public static String getStringAnswer(String question) {
+        String answer = "-1";
         log.info(question);
         try {
-            return reader.readLine().trim();
+            answer = reader.readLine().trim();
         } catch (Exception e) {
             log.error("Read line exception: {}", e.getMessage());
-            return "-1";
         }
+
+        return answer;
     }
 
     public static Integer getIntAnswer(String question) {
+        int answer = -1;
         log.info(question);
         try {
-            return Integer.parseInt(reader.readLine().trim());
+            answer = Integer.parseInt(reader.readLine().trim());
         } catch (Exception e) {
             log.error("Parse int exception: {}", e.getMessage());
-            return -1;
         }
+
+        return answer;
     }
 }

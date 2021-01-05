@@ -18,37 +18,39 @@ public class ProductRepository {
     }
 
     public boolean create(String name, BigDecimal price, ProductCategory category) {
+        int rows = 0;
         try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
             PreparedStatement ps = connection.prepareStatement("insert into products (name, price, category) values (?, ?, ?);");
             ps.setString(1, name);
             ps.setBigDecimal(2, price);
             ps.setString(3, category.name());
-            int rows = ps.executeUpdate();
-            return rows != 0;
+            rows = ps.executeUpdate();
         } catch (SQLException e) {
             log.error("Order SQL error: {}", e.getMessage());
-            return false;
         }
+
+        return rows != 0;
     }
 
     public Product getById(Integer id) {
+        Product product = null;
         try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
             PreparedStatement ps = connection.prepareStatement("select * from products where id = ?;");
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                return new Product(
+                product = new Product(
                     rs.getInt("id"),
                     rs.getString("name"),
                     rs.getBigDecimal("price"),
                     ProductCategory.valueOf(rs.getString("category"))
                 );
             }
-            return null;
         } catch (SQLException e) {
             log.error("Product SQL error: {}", e.getMessage());
-            return null;
         }
+
+        return product;
     }
 
     public List<Product> getAll() {
@@ -63,10 +65,10 @@ public class ProductRepository {
                     ProductCategory.valueOf(rs.getString("category"))
                 ));
             }
-            return products;
         } catch (SQLException e) {
             log.error("Product SQL error: {}", e.getMessage());
-            return products;
         }
+
+        return products;
     }
 }

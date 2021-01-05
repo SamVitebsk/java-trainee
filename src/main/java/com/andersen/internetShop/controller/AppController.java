@@ -42,20 +42,10 @@ public class AppController {
                 }
                 break;
             case 3:
-                boolean notEmpty = bucketService.showProductsInTheBucket();
-                if (!notEmpty) {
-                    log.info("*** Bucket is empty ***");
-                } else {
-                    productId = getIntAnswer("Select a product ID:");
-                    countProducts = getIntAnswer("Count of products:");
-                    boolean wasRemoved = bucketService.deleteProductFromTheBucket(productId, countProducts);
-                    if (wasRemoved) {
-                        log.info("*** Product was removed ***");
-                    }
-                }
+                deleteProductFromBucket();
                 break;
             case 4:
-                notEmpty = bucketService.showProductsInTheBucket();
+                boolean notEmpty = bucketService.showProductsInTheBucket();
                 if (!notEmpty) {
                     log.info("*** Bucket is empty ***");
                 }
@@ -65,34 +55,7 @@ public class AppController {
                 log.info("*** Bucket cleared ***");
                 break;
             case 6:
-                MenuView.showCurrencyListMenu();
-                Integer currencyNumber = getIntAnswer("Select a currency:");
-                CurrencyCode currencyCode = CurrencyFactory.convertCurrencyIndexToCurrencyCode(currencyNumber);
-                if (Objects.isNull(currencyCode)) {
-                    log.info("*** Order canceled ***");
-                } else {
-                    Currency currency = CurrencyFactory.getCurrency(currencyCode);
-                    BigDecimal total = bucketService.getTotal(currency);
-                    log.info("*** Total: {} ***", total);
-                    Integer confirm = getIntAnswer(" Confirm? (1 - Yes, 0 - No)");
-                    if (confirm.equals(1)) {
-                        orderService.makeOrder(user, total, true);
-                        bucketService.clearBucket();
-                        log.info("*** Order accepted, you must pay {} {}, check email ***", CurrencyCode.BYN, total);
-                    } else if (confirm.equals(0)) {
-                        Integer saveOrder = getIntAnswer("Save order? (1 - Yes, 0 - No)");
-                        if (saveOrder.equals(1)) {
-                            orderService.makeOrder(user, total, false);
-                            log.info("*** Order saved ***");
-                        } else {
-                            bucketService.clearBucket();
-                            log.info("*** Order canceled ***");
-                        }
-                    } else {
-                        bucketService.clearBucket();
-                        log.info("*** Order canceled ***");
-                    }
-                }
+                makeOrder(user);
                 break;
             case 7:
                 List<Order> orders = orderService.getOrdersHistory(user);
@@ -103,26 +66,75 @@ public class AppController {
                 }
                 break;
             case 8:
-                orders = orderService.getNotAcceptedOrders(user);
-                if (orders.isEmpty()) {
-                    log.info("***** Orders not found *****");
-                } else {
-                    orders.forEach(order -> log.info("{}", order));
-                    Integer orderId = getIntAnswer("Order id:");
-                    Integer accept = getIntAnswer("Accept order? (1 - Yes, 0 - No):");
-                    if (accept == 1) {
-                        orderService.acceptOrder(user, orderId);
-                        log.info("***** Order accepted *****");
-                    } else {
-                        log.info("***** Order canceled *****");
-                    }
-                }
+                acceptSavedOrder(user);
                 break;
             case 0:
                 authService.exit();
                 break;
             default:
                 bucketService.showProductList();
+        }
+    }
+
+    private void acceptSavedOrder(User user) {
+        List<Order> orders = orderService.getNotAcceptedOrders(user);
+        if (orders.isEmpty()) {
+            log.info("***** Orders not found *****");
+        } else {
+            orders.forEach(order -> log.info("{}", order));
+            Integer orderId = getIntAnswer("Order id:");
+            Integer accept = getIntAnswer("Accept order? (1 - Yes, 0 - No):");
+            if (accept == 1) {
+                orderService.acceptOrder(user, orderId);
+                log.info("***** Order accepted *****");
+            } else {
+                log.info("***** Order canceled *****");
+            }
+        }
+    }
+
+    private void makeOrder(User user) {
+        MenuView.showCurrencyListMenu();
+        Integer currencyNumber = getIntAnswer("Select a currency:");
+        CurrencyCode currencyCode = CurrencyFactory.convertCurrencyIndexToCurrencyCode(currencyNumber);
+        if (Objects.isNull(currencyCode)) {
+            log.info("*** Order canceled ***");
+        } else {
+            Currency currency = CurrencyFactory.getCurrency(currencyCode);
+            BigDecimal total = bucketService.getTotal(currency);
+            log.info("*** Total: {} ***", total);
+            Integer confirm = getIntAnswer(" Confirm? (1 - Yes, 0 - No)");
+            if (confirm.equals(1)) {
+                orderService.makeOrder(user, total, true);
+                bucketService.clearBucket();
+                log.info("*** Order accepted, you must pay {} {}, check email ***", CurrencyCode.BYN, total);
+            } else if (confirm.equals(0)) {
+                Integer saveOrder = getIntAnswer("Save order? (1 - Yes, 0 - No)");
+                if (saveOrder.equals(1)) {
+                    orderService.makeOrder(user, total, false);
+                    log.info("*** Order saved ***");
+                } else {
+                    log.info("*** Order canceled ***");
+                }
+                bucketService.clearBucket();
+            } else {
+                bucketService.clearBucket();
+                log.info("*** Order canceled ***");
+            }
+        }
+    }
+
+    private void deleteProductFromBucket() {
+        boolean notEmpty = bucketService.showProductsInTheBucket();
+        if (!notEmpty) {
+            log.info("*** Bucket is empty ***");
+        } else {
+            Integer productId = getIntAnswer("Select a product ID:");
+            Integer countProducts = getIntAnswer("Count of products:");
+            boolean wasRemoved = bucketService.deleteProductFromTheBucket(productId, countProducts);
+            if (wasRemoved) {
+                log.info("*** Product was removed ***");
+            }
         }
     }
 
@@ -175,7 +187,7 @@ public class AppController {
     private void initBucketController(User user) {
         bucketService = new BucketService(
                 warehouse,
-                new BucketRepository(user, new ProductRepository())
+                new BucketRepository(user, new ProductRepository(), warehouse)
         );
     }
 }

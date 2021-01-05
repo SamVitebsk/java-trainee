@@ -27,19 +27,26 @@ public class Warehouse {
         count = checkCount(count);
         checkExpiryDate(product);
 
-        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
             Product item = getById(product.getId());
 
-            PreparedStatement ps;
             if (Objects.nonNull(item)) {
-                ps = connection.prepareStatement("update warehouse as w set w.count = w.count + ? where product_id = ?;");
-                ps.setInt(1, count);
-                ps.setInt(2, product.getId());
+                increaseCountProducts(product.getId(), count);
             } else {
-                ps = connection.prepareStatement("insert into warehouse (product_id, count) values (?, ?);");
-                ps.setInt(1, product.getId());
-                ps.setInt(2, count);
+                insertProduct(product.getId(), count);
             }
+    }
+
+    public void addProduct(Product product) {
+        addProduct(product, 1);
+    }
+
+    private void insertProduct(Integer productId, Integer count) {
+        checkCount(count);
+
+        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            PreparedStatement ps = connection.prepareStatement("insert into warehouse (product_id, count) values (?, ?);");
+            ps.setInt(1, productId);
+            ps.setInt(2, count);
             ps.executeUpdate();
         } catch (SQLException e) {
             log.error("Warehouse SQL error: {}", e.getMessage());
@@ -47,12 +54,8 @@ public class Warehouse {
 
     }
 
-    public void addProduct(Product product) {
-        addProduct(product, 1);
-    }
-
     public Product getById(Integer productId, Integer count) {
-        count = checkCount(count);
+        checkCount(count);
 
         try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
             PreparedStatement ps = connection.prepareStatement("select * from warehouse where product_id = ?;");
@@ -61,11 +64,11 @@ public class Warehouse {
             if (rs.next()) {
                 return productRepository.getById(rs.getInt("product_id"));
             }
-            throw new ProductNotFoundException();
         } catch (SQLException e) {
             log.error("Warehouse SQL error: {}", e.getMessage());
-            throw new ProductNotFoundException();
         }
+
+        throw new ProductNotFoundException();
     }
 
     public Product getById(Integer id) {
@@ -73,35 +76,51 @@ public class Warehouse {
     }
 
     public Integer countItems() {
+        int total = 0;
         try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
             Statement st = connection.createStatement();
             ResultSet rs = st.executeQuery("select sum(count) as total from warehouse;");
             if (rs.next()) {
-                int total = rs.getInt("total");
-                log.info("countItems: {}", total);
-                return total;
+                total = rs.getInt("total");
             }
-            return 0;
         } catch (SQLException e) {
             log.error("Warehouse SQL error: {}", e.getMessage());
-            return 0;
         }
+
+        return total;
     }
 
     public Integer countProducts() {
+        int count = 0;
         try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
             Statement st = connection.createStatement();
             ResultSet rs = st.executeQuery("select count(*) as quantity from warehouse;");
             if (rs.next()) {
-                int quantity = rs.getInt("quantity");
-                log.info("SIZE: {}", quantity);
-                return quantity;
+                count = rs.getInt("quantity");
             }
-            return 0;
         } catch (SQLException e) {
             log.error("Warehouse SQL error: {}", e.getMessage());
-            return 0;
         }
+
+        return count;
+    }
+
+    public Integer countProductById(Integer productId) {
+        int count = 0;
+        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            PreparedStatement ps = connection.prepareStatement(
+                    "select count from warehouse where product_id = ?;"
+            );
+            ps.setInt(1, productId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                count = rs.getInt("count");
+            }
+        } catch (SQLException e) {
+            log.error("Warehouse SQL error: {}", e.getMessage());
+        }
+
+        return count;
     }
 
     public boolean isEmpty() {
@@ -113,33 +132,65 @@ public class Warehouse {
     }
 
     public Map<Product, Integer> getAll() {
+        Map<Product, Integer> products = new LinkedHashMap<>();
         try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
             PreparedStatement ps = connection.prepareStatement("select * from warehouse order by product_id;");
             ResultSet rs = ps.executeQuery();
-            Map<Product, Integer> products = new LinkedHashMap<>();
+
             while (rs.next()) {
                 Product product = productRepository.getById(rs.getInt("product_id"));
                 products.put(product, rs.getInt("count"));
             }
-            return products;
         } catch (SQLException e) {
             log.error("Warehouse SQL error: {}", e.getMessage());
-            return null;
         }
+
+        return products;
     }
 
     public boolean update(Integer productId, Integer count) {
+        int rows = 0;
         try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
             PreparedStatement ps = connection.prepareStatement("update warehouse set count = ? where product_id = ?;");
             ps.setInt(1, count);
             ps.setInt(2, productId);
-            int rows = ps.executeUpdate();
-            return rows != 0;
-
+            rows = ps.executeUpdate();
         } catch (SQLException e) {
             log.error("Warehouse SQL error: {}", e.getMessage());
-            return false;
         }
+        return rows != 0;
+    }
+
+    public boolean increaseCountProducts(Integer productId, Integer count) {
+        int rows = 0;
+        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            PreparedStatement ps = connection.prepareStatement(
+                    "update warehouse set count = (count + ?) where product_id = ?;"
+            );
+            ps.setInt(1, count);
+            ps.setInt(2, productId);
+            rows = ps.executeUpdate();
+        } catch (SQLException e) {
+            log.error("Warehouse SQL error: {}", e.getMessage());
+        }
+
+        return rows != 0;
+    }
+
+    public boolean reduceCountProducts(Integer productId, Integer count) {
+        int rows = 0;
+        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            PreparedStatement ps = connection.prepareStatement(
+                    "update warehouse set count = count - ? where product_id = ?;"
+            );
+            ps.setInt(1, count);
+            ps.setInt(2, productId);
+            rows = ps.executeUpdate();
+        } catch (SQLException e) {
+            log.error("Warehouse SQL error: {}", e.getMessage());
+        }
+
+        return rows != 0;
     }
 
     private void checkExpiryDate(Product product) {

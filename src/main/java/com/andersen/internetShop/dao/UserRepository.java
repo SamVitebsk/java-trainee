@@ -13,6 +13,7 @@ public class UserRepository {
     private static final String DB_URL = "jdbc:mysql://localhost:3306/shop?serverTimezone=Europe/Moscow";
 
     public User getByLoginAndPassword(String login, String password) {
+        User user = null;
         try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
             PreparedStatement ps = connection.prepareStatement("select * from customers where login = ? and password = ?");
 
@@ -22,19 +23,18 @@ public class UserRepository {
             ResultSet resultSet = ps.executeQuery();
             if (resultSet.next()) {
                 String id = resultSet.getString("id");
-                User user = new User(UUID.fromString(id), login, hash);
-
-                log.info("user: {}", user.toString());
-                return user;
+                user = new User(UUID.fromString(id), login, hash);
+                log.info("Welcome: {}", user.toString());
             }
-            return null;
         } catch (SQLException e) {
             log.error("Login SQL exception: {}", e.getMessage());
-            return null;
         }
+
+        return user;
     }
 
     public User create(String login, String password) {
+        User user = null;
         try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
             PreparedStatement ps = connection.prepareStatement("insert into customers (id, login, password) values (?, ?, ?)");
             String id = UUID.randomUUID().toString();
@@ -44,13 +44,12 @@ public class UserRepository {
             int rows = ps.executeUpdate();
 
             if (rows != 0) {
-                return getByLoginAndPassword(login, password);
+                user = getByLoginAndPassword(login, password);
             }
-
-            return null;
         } catch (SQLException e) {
             log.error("Registration SQL exception: {}", e.getMessage());
-            return null;
         }
+
+        return user;
     }
 }

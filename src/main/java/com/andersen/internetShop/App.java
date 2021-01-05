@@ -29,7 +29,7 @@ public class App {
         int userInput;
         do {
             MenuView.showMainMenu();
-            userInput = getIntAnswer("Select number from 0 to 6");
+            userInput = getIntAnswer("Select number from 0 to 8");
             appController.action(userInput, user);
         } while (userInput != 0);
     }

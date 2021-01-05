@@ -19,15 +19,18 @@ public class BucketRepository implements Serializable {
     private static final String DB_URL = "jdbc:mysql://localhost:3306/shop?serverTimezone=Europe/Moscow";
 
     private final ProductRepository productRepository;
+    private final Warehouse warehouse;
     private Bucket bucket;
 
-    public BucketRepository(User user, ProductRepository productRepository) {
+    public BucketRepository(User user, ProductRepository productRepository, Warehouse warehouse) {
         this.productRepository = productRepository;
+        this.warehouse = warehouse;
 
         try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
             PreparedStatement ps = connection.prepareStatement("select * from bucket where user_id = ?;");
             ps.setString(1, user.getId().toString());
             ResultSet rs = ps.executeQuery();
+
             if (rs.next()) {
                 bucket = new Bucket(rs.getInt("id"), user);
             } else {
@@ -42,56 +45,35 @@ public class BucketRepository implements Serializable {
         } catch (SQLException e) {
             log.error("Bucket SQL error: {}", e.getMessage());
         }
-
     }
 
     public void addProduct(Product product, Integer count) {
         checkInput(product, count);
 
+        int countOnWarehouse = warehouse.countProductById(product.getId());
+        if (countOnWarehouse < count) {
+            throw new SoManyProductsException();
+        }
+
+        Product productById = getById(product.getId());
+
+        if (Objects.nonNull(productById)) {
+            increaseCountProduct(product.getId(), count);
+        } else {
+            insertProduct(product.getId(), count);
+        }
+
+        warehouse.reduceCountProducts(product.getId(), count);
+    }
+
+    private void insertProduct(Integer productId, Integer count) {
         try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
             PreparedStatement ps = connection.prepareStatement(
-                    "select * from warehouse where product_id = ?"
-            );
-            ps.setInt(1, product.getId());
-            ResultSet rs = ps.executeQuery();
-            if (! rs.next()) {
-                throw new ProductNotFoundException();
-            }
-
-            int countOnWarehouse = rs.getInt("count");
-
-            if (countOnWarehouse < count) {
-                throw new SoManyProductsException();
-            }
-
-            ps = connection.prepareStatement(
-                    "select * from bucket_product where bucket_id = ? and product_id = ?"
+                    "insert into bucket_product (bucket_id, product_id, count) values (?, ?, ?)"
             );
             ps.setInt(1, bucket.getId());
-            ps.setInt(2, product.getId());
-            rs = ps.executeQuery();
-            if (rs.next()) {
-                ps = connection.prepareStatement(
-                        "update bucket_product set count = (count + ?) where bucket_id = ? and product_id = ?"
-                );
-                ps.setInt(1, count);
-                ps.setInt(2, bucket.getId());
-                ps.setInt(3, product.getId());
-            } else {
-                ps = connection.prepareStatement(
-                        "insert into bucket_product (bucket_id, product_id, count) values (?, ?, ?)"
-                );
-                ps.setInt(1, bucket.getId());
-                ps.setInt(2, product.getId());
-                ps.setInt(3, count);
-            }
-            ps.executeUpdate();
-
-            ps = connection.prepareStatement(
-                    "update warehouse set count = count - ? where product_id = ?;"
-            );
-            ps.setInt(1, count);
-            ps.setInt(2, product.getId());
+            ps.setInt(2, productId);
+            ps.setInt(3, count);
             ps.executeUpdate();
         } catch (SQLException e) {
             log.error("Bucket SQL error: {}", e.getMessage());
@@ -112,54 +94,63 @@ public class BucketRepository implements Serializable {
             ps.setInt(1, bucket.getId());
             ps.setInt(2, product.getId());
             ResultSet rs = ps.executeQuery();
+
             if (rs.next()) {
                 int currentCount = rs.getInt("count") - count;
                 if (currentCount <= 0) {
-                    ps = connection.prepareStatement(
-                            "update bucket_product set count = ? where bucket_id = ? and product_id = ?;"
-                    );
-                    ps.setInt(1, rs.getInt("count"));
-                    ps.setInt(2, bucket.getId());
-                    ps.setInt(3, product.getId());
-                    ps.executeUpdate();
-
-                    ps = connection.prepareStatement(
-                            "delete from bucket_product where bucket_id = ? and product_id = ?;"
-                    );
-                    ps.setInt(1, bucket.getId());
-                    ps.setInt(2, product.getId());
-                    ps.executeUpdate();
-
-                    ps = connection.prepareStatement(
-                            "update warehouse set count = (count + ?) where product_id = ?;"
-                    );
-                    ps.setInt(1, rs.getInt("count"));
-                    ps.setInt(2, product.getId());
-                    ps.executeUpdate();
+                    updateCountProduct(product.getId(), rs.getInt("count"));
+                    deleteFromBucket(product.getId());
+                    warehouse.increaseCountProducts(product.getId(), rs.getInt("count"));
                 } else {
-                    ps = connection.prepareStatement(
-                            "update bucket_product set count = ? where bucket_id = ? and product_id = ?;"
-                    );
-                    ps.setInt(1, currentCount);
-                    ps.setInt(2, bucket.getId());
-                    ps.setInt(3, product.getId());
-
-
-                    ps.executeUpdate();
-
-                    ps = connection.prepareStatement(
-                            "update warehouse set count = (count + ?) where product_id = ?;"
-                    );
-                    ps.setInt(1, count);
-                    ps.setInt(2, product.getId());
-                    ps.executeUpdate();
+                    updateCountProduct(product.getId(), currentCount);
+                    warehouse.increaseCountProducts(product.getId(), count);
                 }
-
             } else {
                 throw new ProductNotFoundException();
             }
         } catch (SQLException e) {
             log.error("Bucket DELETE SQL error: {}", e.getMessage());
+        }
+    }
+
+    private void updateCountProduct(Integer productId, Integer count) {
+        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            PreparedStatement ps = connection.prepareStatement(
+                    "update bucket_product set count = ? where bucket_id = ? and product_id = ?;"
+            );
+            ps.setInt(1, count);
+            ps.setInt(2, bucket.getId());
+            ps.setInt(3, productId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            log.error("Bucket SQL error: {}", e.getMessage());
+        }
+    }
+
+    private void increaseCountProduct(Integer productId, Integer count) {
+        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            PreparedStatement ps = connection.prepareStatement(
+                    "update bucket_product set count = count + ? where bucket_id = ? and product_id = ?;"
+            );
+            ps.setInt(1, count);
+            ps.setInt(2, bucket.getId());
+            ps.setInt(3, productId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            log.error("Bucket SQL error: {}", e.getMessage());
+        }
+    }
+
+    private void deleteFromBucket(Integer productId) {
+        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            PreparedStatement ps = connection.prepareStatement(
+                    "delete from bucket_product where bucket_id = ? and product_id = ?;"
+            );
+            ps.setInt(1, bucket.getId());
+            ps.setInt(2, productId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            log.error("Bucket SQL error: {}", e.getMessage());
         }
     }
 
@@ -171,7 +162,7 @@ public class BucketRepository implements Serializable {
         try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
             PreparedStatement ps = connection.prepareStatement("delete from bucket_product where bucket_id = ?;");
             ps.setInt(1, bucket.getId());
-            int rows = ps.executeUpdate();
+            ps.executeUpdate();
         } catch (SQLException e) {
             log.error("Bucket SQL error: {}", e.getMessage());
         }
@@ -183,17 +174,35 @@ public class BucketRepository implements Serializable {
             ps.setInt(1, bucket.getId());
             ResultSet rs = ps.executeQuery();
             bucket.getProducts().clear();
+
             while (rs.next()) {
                 bucket.getProducts().put(
                         productRepository.getById(rs.getInt("product_id")),
                         rs.getInt("count")
                 );
             }
-            return bucket.getProducts();
         } catch (SQLException e) {
             log.error("Bucket SQL error: {}", e.getMessage());
-            return bucket.getProducts();
         }
+
+        return bucket.getProducts();
+    }
+
+    public Product getById(Integer productId) {
+        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            PreparedStatement ps = connection.prepareStatement(
+                    "select * from bucket_product where bucket_id = ? and product_id = ?");
+            ps.setInt(1, bucket.getId());
+            ps.setInt(2, productId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return productRepository.getById(rs.getInt("product_id"));
+            }
+        } catch (SQLException e) {
+            log.error("Bucket SQL error: {}", e.getMessage());
+        }
+
+        return null;
     }
 
     public Integer countProducts() {
@@ -204,11 +213,11 @@ public class BucketRepository implements Serializable {
             if (rs.next()) {
                 return rs.getInt("quantity");
             }
-            return 0;
         } catch (SQLException e) {
             log.error("Bucket SQL error: {}", e.getMessage());
-            return 0;
         }
+
+        return 0;
     }
 
     public Integer countItems() {
@@ -219,11 +228,11 @@ public class BucketRepository implements Serializable {
             if (rs.next()) {
                 return rs.getInt("quantity");
             }
-            return 0;
         } catch (SQLException e) {
             log.error("Bucket SQL error: {}", e.getMessage());
-            return 0;
         }
+
+        return 0;
     }
 
     public boolean isEmpty() {
