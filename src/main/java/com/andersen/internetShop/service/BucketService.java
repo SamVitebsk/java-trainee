@@ -1,28 +1,33 @@
-package com.andersen.internetShop;
+package com.andersen.internetShop.service;
 
 import com.andersen.internetShop.currency.Currency;
+import com.andersen.internetShop.dao.BucketRepository;
+import com.andersen.internetShop.dao.Warehouse;
 import com.andersen.internetShop.exceptions.NegativeNumberProductsException;
 import com.andersen.internetShop.exceptions.ProductNotFoundException;
 import com.andersen.internetShop.exceptions.SoManyProductsException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
 
 @Slf4j
-@RequiredArgsConstructor
-public class MainController {
+public class BucketService {
     private final Warehouse warehouse;
-    private final Bucket bucket;
+    private final BucketRepository bucketRepository;
+
+    public BucketService(Warehouse warehouse, BucketRepository bucketRepository) {
+        this.warehouse = warehouse;
+        this.bucketRepository = bucketRepository;
+    }
 
     public void showProductList() {
-        warehouse.getProducts()
+        warehouse.getAll()
                 .forEach((product, count) -> log.info("{}: count = {}", product, count));
     }
 
     public boolean addProductToBucket(Integer productId, Integer count) {
         try {
-            bucket.addProduct(warehouse.getById(productId, count), count);
+            bucketRepository.addProduct(warehouse.getById(productId, count), count);
             return true;
         } catch (SoManyProductsException e) {
             log.info("*** Not enough products in warehouse ***");
@@ -34,13 +39,13 @@ public class MainController {
     }
 
     public boolean deleteProductFromTheBucket(Integer productId, Integer count) {
-        if (bucket.isEmpty()) {
+        if (bucketRepository.isEmpty()) {
             log.info("*** Bucket is empty, nothing to remove ***");
             return false;
         }
 
         try {
-            bucket.removeProduct(warehouse.getById(productId), count);
+            bucketRepository.removeProduct(warehouse.getById(productId), count);
             return true;
         } catch (ProductNotFoundException e) {
             log.info("*** Product not found ***");
@@ -51,25 +56,21 @@ public class MainController {
         }
     }
 
-    public boolean showProductsInTheBucket() {
-        if (! bucket.isEmpty()) {
-            bucket.getAll()
-                    .forEach((product, count) -> log.info("{}: count = {}", product, count));
-            return true;
-        }
-
-        return false;
+    public void showProductsInTheBucket() {
+        bucketRepository.getAll()
+                .forEach((product, count) -> log.info("{}: count = {}", product, count));
     }
 
     public void clearBucket() {
-        bucket.clear();
+        bucketRepository.clear();
+        log.info("*** Bucket cleared ***");
     }
 
-    public void exit() {
-        log.info("Good bye");
+    public boolean bucketIsEmpty() {
+        return bucketRepository.isEmpty();
     }
 
-    public BigDecimal makeOrder(Currency currency) {
-        return bucket.calculateTotal(currency);
+    public BigDecimal getTotal(Currency currency) {
+        return bucketRepository.calculateTotal(currency);
     }
 }

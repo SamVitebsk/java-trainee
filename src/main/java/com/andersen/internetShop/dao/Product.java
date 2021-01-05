@@ -1,4 +1,4 @@
-package com.andersen.internetShop;
+package com.andersen.internetShop.dao;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -13,14 +13,19 @@ import java.math.BigDecimal;
 @ToString
 @EqualsAndHashCode
 public class Product implements Serializable {
-    private static Integer CURRENT_ID = 0;
     private Integer id;
     private String name;
     private BigDecimal price;
     private ProductCategory category;
 
-    Product(String name, BigDecimal price, ProductCategory category) {
-        this.id = ++CURRENT_ID;
+    public Product(String name, BigDecimal price, ProductCategory category) {
+        this.name = name;
+        this.price = price;
+        this.category = category;
+    }
+
+    public Product(Integer id, String name, BigDecimal price, ProductCategory category) {
+        this.id = id;
         this.name = name;
         this.price = price;
         this.category = category;

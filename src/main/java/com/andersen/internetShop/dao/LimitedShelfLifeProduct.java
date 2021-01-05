@@ -1,4 +1,6 @@
-package com.andersen.internetShop;
+package com.andersen.internetShop.dao;
+
+import com.andersen.internetShop.utils.ExpiryDate;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

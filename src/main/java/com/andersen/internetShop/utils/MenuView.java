@@ -1,4 +1,4 @@
-package com.andersen.internetShop;
+package com.andersen.internetShop.utils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,6 +12,8 @@ public class MenuView {
         log.info("4. Show products in the bucket");
         log.info("5. Clear bucket");
         log.info("6. Make an order");
+        log.info("7. Orders history");
+        log.info("8. Accept saved orders");
         log.info("0. Exit");
         log.info("*********************************");
     }
@@ -22,6 +24,14 @@ public class MenuView {
         log.info("2. Hryvnia");
         log.info("3. US Dollar");
         log.info("0. Cancel");
+        log.info("*********************************");
+    }
+
+    public static void showAuthMenu() {
+        log.info("********* Sign up / Sign in *********");
+        log.info("1. Sign in");
+        log.info("2. Sign up");
+        log.info("0. Exit");
         log.info("*********************************");
     }
 }
