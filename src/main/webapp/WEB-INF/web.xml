@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://java.sun.com/xml/ns/javaee"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+         version="3.0">
+
+    <servlet>
+        <servlet-name>mainServlet</servlet-name>
+        <servlet-class>com.andersen.internetShop.servlet.MainServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>mainServlet</servlet-name>
+        <url-pattern>/main</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>loginServlet</servlet-name>
+        <servlet-class>com.andersen.internetShop.servlet.LoginServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>loginServlet</servlet-name>
+        <url-pattern>/auth</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>registrationServlet</servlet-name>
+        <servlet-class>com.andersen.internetShop.servlet.RegistrationServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>registrationServlet</servlet-name>
+        <url-pattern>/registration</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>warehouseServlet</servlet-name>
+        <servlet-class>com.andersen.internetShop.servlet.WarehouseServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>warehouseServlet</servlet-name>
+        <url-pattern>/warehouse/products</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>bucketServlet</servlet-name>
+        <servlet-class>com.andersen.internetShop.servlet.BucketServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>bucketServlet</servlet-name>
+        <url-pattern>/bucket/products</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>logoutServlet</servlet-name>
+        <servlet-class>com.andersen.internetShop.servlet.LogoutServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>logoutServlet</servlet-name>
+        <url-pattern>/logout</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>bucketClearServlet</servlet-name>
+        <servlet-class>com.andersen.internetShop.servlet.ClearBucketServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>bucketClearServlet</servlet-name>
+        <url-pattern>/bucket/clear</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>orderHistoryServlet</servlet-name>
+        <servlet-class>com.andersen.internetShop.servlet.OrderHistoryServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>orderHistoryServlet</servlet-name>
+        <url-pattern>/order/history</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>notAcceptedOrdersServlet</servlet-name>
+        <servlet-class>com.andersen.internetShop.servlet.NotAcceptedOrdersServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>notAcceptedOrdersServlet</servlet-name>
+        <url-pattern>/order/not-accepted</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>orderAcceptServlet</servlet-name>
+        <servlet-class>com.andersen.internetShop.servlet.OrderAcceptServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>orderAcceptServlet</servlet-name>
+        <url-pattern>/order/accept</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>addProductToBucketServlet</servlet-name>
+        <servlet-class>com.andersen.internetShop.servlet.AddProductToBucketServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>addProductToBucketServlet</servlet-name>
+        <url-pattern>/bucket/add-product</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>deleteProductFromBucketServlet</servlet-name>
+        <servlet-class>com.andersen.internetShop.servlet.DeleteProductFromBucketServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>deleteProductFromBucketServlet</servlet-name>
+        <url-pattern>/bucket/delete-product</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>orderServlet</servlet-name>
+        <servlet-class>com.andersen.internetShop.servlet.OrderServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>orderServlet</servlet-name>
+        <url-pattern>/order/make</url-pattern>
+    </servlet-mapping>
+
+</web-app>

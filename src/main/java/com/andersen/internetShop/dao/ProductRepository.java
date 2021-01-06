@@ -8,14 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-public class ProductRepository {
+public class ProductRepository extends BaseRepository {
     public List<Product> products = new ArrayList<>();
-    private static final String DB_USER = "admin";
-    private static final String DB_PASSWORD = "admin";
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/shop?serverTimezone=Europe/Moscow";
-
-    public ProductRepository() {
-    }
 
     public boolean create(String name, BigDecimal price, ProductCategory category) {
         int rows = 0;
