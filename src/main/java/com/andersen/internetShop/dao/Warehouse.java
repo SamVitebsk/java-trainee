@@ -12,11 +12,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @Slf4j
-public class Warehouse {
-    private static final String DB_USER = "admin";
-    private static final String DB_PASSWORD = "admin";
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/shop?serverTimezone=Europe/Moscow";
-
+public class Warehouse extends BaseRepository {
     private final ProductRepository productRepository;
 
     public Warehouse(ProductRepository productRepository) {

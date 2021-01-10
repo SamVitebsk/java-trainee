@@ -13,11 +13,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @Slf4j
-public class BucketRepository implements Serializable {
-    private static final String DB_USER = "admin";
-    private static final String DB_PASSWORD = "admin";
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/shop?serverTimezone=Europe/Moscow";
-
+public class BucketRepository extends BaseRepository implements Serializable {
     private final ProductRepository productRepository;
     private final Warehouse warehouse;
     private Bucket bucket;
@@ -47,7 +43,7 @@ public class BucketRepository implements Serializable {
         }
     }
 
-    public void addProduct(Product product, Integer count) {
+    public boolean addProduct(Product product, Integer count) {
         checkInput(product, count);
 
         int countOnWarehouse = warehouse.countProductById(product.getId());
@@ -63,7 +59,7 @@ public class BucketRepository implements Serializable {
             insertProduct(product.getId(), count);
         }
 
-        warehouse.reduceCountProducts(product.getId(), count);
+        return warehouse.reduceCountProducts(product.getId(), count);
     }
 
     private void insertProduct(Integer productId, Integer count) {

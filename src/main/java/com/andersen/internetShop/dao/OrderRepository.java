@@ -10,11 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Slf4j
-public class OrderRepository {
-    private static final String DB_USER = "admin";
-    private static final String DB_PASSWORD = "admin";
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/shop?serverTimezone=Europe/Moscow";
-
+public class OrderRepository extends BaseRepository{
     public boolean create(UUID userId, BigDecimal total, Boolean accepted) {
         int rows = 0;
         try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {

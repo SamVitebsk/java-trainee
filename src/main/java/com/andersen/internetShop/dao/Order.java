@@ -1,12 +1,14 @@
 package com.andersen.internetShop.dao;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
+@Getter
 @ToString
 @AllArgsConstructor
 public class Order {

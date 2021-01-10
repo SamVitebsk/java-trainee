@@ -2,6 +2,7 @@ package com.andersen.internetShop.service;
 
 import com.andersen.internetShop.currency.Currency;
 import com.andersen.internetShop.dao.BucketRepository;
+import com.andersen.internetShop.dao.Product;
 import com.andersen.internetShop.dao.Warehouse;
 import com.andersen.internetShop.exceptions.NegativeNumberProductsException;
 import com.andersen.internetShop.exceptions.ProductNotFoundException;
@@ -9,6 +10,7 @@ import com.andersen.internetShop.exceptions.SoManyProductsException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 @Slf4j
 public class BucketService {
@@ -26,16 +28,20 @@ public class BucketService {
     }
 
     public boolean addProductToBucket(Integer productId, Integer count) {
+        boolean added = false;
         try {
-            bucketRepository.addProduct(warehouse.getById(productId, count), count);
-            return true;
+            added = bucketRepository.addProduct(warehouse.getById(productId, count), count);
         } catch (SoManyProductsException e) {
             log.info("*** Not enough products in warehouse ***");
-            return false;
         } catch (ProductNotFoundException e) {
             log.info("*** Product not found ***");
-            return false;
         }
+
+        return added;
+    }
+
+    public boolean addProductToBucket(Integer productId) {
+        return addProductToBucket(productId, 1);
     }
 
     public boolean deleteProductFromTheBucket(Integer productId, Integer count) {
@@ -44,21 +50,30 @@ public class BucketService {
             return false;
         }
 
+        boolean deleted = false;
         try {
             bucketRepository.removeProduct(warehouse.getById(productId), count);
-            return true;
+            deleted = true;
         } catch (ProductNotFoundException e) {
             log.info("*** Product not found ***");
-            return false;
         } catch (NegativeNumberProductsException e) {
             log.info("*** Wrong number of products: {} ***", count);
-            return false;
         }
+
+        return deleted;
+    }
+
+    public boolean deleteProductFromTheBucket(Integer productId) {
+        return deleteProductFromTheBucket(productId, 1);
     }
 
     public void showProductsInTheBucket() {
         bucketRepository.getAll()
                 .forEach((product, count) -> log.info("{}: count = {}", product, count));
+    }
+
+    public Map<Product, Integer> getProducts() {
+        return bucketRepository.getAll();
     }
 
     public void clearBucket() {
