@@ -30,8 +30,7 @@ public class BucketService {
     public boolean addProductToBucket(Integer productId, Integer count) {
         boolean added = false;
         try {
-            bucketRepository.addProduct(warehouse.getById(productId, count), count);
-            added = true;
+            added = bucketRepository.addProduct(warehouse.getById(productId, count), count);
         } catch (SoManyProductsException e) {
             log.info("*** Not enough products in warehouse ***");
         } catch (ProductNotFoundException e) {

@@ -43,7 +43,7 @@ public class BucketRepository extends BaseRepository implements Serializable {
         }
     }
 
-    public void addProduct(Product product, Integer count) {
+    public boolean addProduct(Product product, Integer count) {
         checkInput(product, count);
 
         int countOnWarehouse = warehouse.countProductById(product.getId());
@@ -59,7 +59,7 @@ public class BucketRepository extends BaseRepository implements Serializable {
             insertProduct(product.getId(), count);
         }
 
-        warehouse.reduceCountProducts(product.getId(), count);
+        return warehouse.reduceCountProducts(product.getId(), count);
     }
 
     private void insertProduct(Integer productId, Integer count) {
