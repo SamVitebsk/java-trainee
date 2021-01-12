@@ -7,6 +7,7 @@
 </head>
 <body>
     <h1>Not Accepted Orders</h1>
+    <p><a href="/main">menu</a></p>
 
     <table>
         <tr>
@@ -22,11 +23,10 @@
                 <td>${order.createdAt}</td>
                 <td>${order.total}</td>
                 <td>${order.accepted}</td>
-                <td><a href="/order/accept?orderId=${order.id}">accept</a></td>
+                <td><a href="/order/accept/${order.id}">accept</a></td>
             </tr>
         </c:forEach>
     </table>
 
-    <p><a href="/main">menu</a></p>
 </body>
 </html>

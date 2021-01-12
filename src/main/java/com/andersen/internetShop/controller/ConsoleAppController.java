@@ -7,9 +7,12 @@ import com.andersen.internetShop.dao.*;
 import com.andersen.internetShop.service.AuthService;
 import com.andersen.internetShop.service.BucketService;
 import com.andersen.internetShop.service.OrderService;
+import com.andersen.internetShop.service.WarehouseService;
 import com.andersen.internetShop.utils.MenuView;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.taglibs.standard.tag.common.sql.DataSourceWrapper;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -20,9 +23,9 @@ import static com.andersen.internetShop.utils.Questioner.getStringAnswer;
 
 @Slf4j
 @RequiredArgsConstructor
-public class AppController {
+public class ConsoleAppController {
     private final AuthService authService;
-    private final Warehouse warehouse;
+    private final WarehouseRepository warehouseRepository;
     private final OrderService orderService;
     private BucketService bucketService;
 
@@ -197,9 +200,16 @@ public class AppController {
     }
 
     private void initBucketController(User user) {
+        WarehouseService warehouseService = new WarehouseService(warehouseRepository);
         bucketService = new BucketService(
-                warehouse,
-                new BucketRepository(user, new ProductRepository(), warehouse)
+                warehouseService,
+                new BucketRepository(
+                        new ProductRepository(new JdbcTemplate(), new DataSourceWrapper()),
+                        warehouseRepository,
+                        authService,
+                        new JdbcTemplate(),
+                        new DataSourceWrapper()
+                )
         );
     }
 }

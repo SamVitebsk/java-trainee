@@ -3,34 +3,30 @@ package com.andersen.internetShop.service;
 import com.andersen.internetShop.currency.Currency;
 import com.andersen.internetShop.dao.BucketRepository;
 import com.andersen.internetShop.dao.Product;
-import com.andersen.internetShop.dao.Warehouse;
 import com.andersen.internetShop.exceptions.NegativeNumberProductsException;
 import com.andersen.internetShop.exceptions.ProductNotFoundException;
 import com.andersen.internetShop.exceptions.SoManyProductsException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
 import java.util.Map;
 
 @Slf4j
+@RequiredArgsConstructor
 public class BucketService {
-    private final Warehouse warehouse;
+    private final WarehouseService warehouseService;
     private final BucketRepository bucketRepository;
 
-    public BucketService(Warehouse warehouse, BucketRepository bucketRepository) {
-        this.warehouse = warehouse;
-        this.bucketRepository = bucketRepository;
-    }
-
     public void showProductList() {
-        warehouse.getAll()
+        warehouseService.getAll()
                 .forEach((product, count) -> log.info("{}: count = {}", product, count));
     }
 
     public boolean addProductToBucket(Integer productId, Integer count) {
         boolean added = false;
         try {
-            added = bucketRepository.addProduct(warehouse.getById(productId, count), count);
+            added = bucketRepository.addProduct(warehouseService.getById(productId, count), count);
         } catch (SoManyProductsException e) {
             log.info("*** Not enough products in warehouse ***");
         } catch (ProductNotFoundException e) {
@@ -52,7 +48,7 @@ public class BucketService {
 
         boolean deleted = false;
         try {
-            bucketRepository.removeProduct(warehouse.getById(productId), count);
+            bucketRepository.removeProduct(warehouseService.getById(productId), count);
             deleted = true;
         } catch (ProductNotFoundException e) {
             log.info("*** Product not found ***");
