@@ -4,75 +4,165 @@ import com.andersen.internetShop.currency.Currency;
 import com.andersen.internetShop.exceptions.NegativeNumberProductsException;
 import com.andersen.internetShop.exceptions.ProductNotFoundException;
 import com.andersen.internetShop.exceptions.SoManyProductsException;
+import com.andersen.internetShop.service.AuthService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.core.JdbcTemplate;
 
+import javax.sql.DataSource;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 @Slf4j
-public class BucketRepository extends BaseRepository implements Serializable {
+@RequiredArgsConstructor
+public class BucketRepository implements Serializable {
     private final ProductRepository productRepository;
-    private final Warehouse warehouse;
-    private Bucket bucket;
+    private final WarehouseRepository warehouseRepository;
+    private final AuthService authService;
+    private final JdbcTemplate jdbcTemplate;
+    private final DataSource dataSource;
 
-    public BucketRepository(User user, ProductRepository productRepository, Warehouse warehouse) {
-        this.productRepository = productRepository;
-        this.warehouse = warehouse;
+    private Bucket getOrCreateBucket() {
+        Bucket bucket = null;
+        Connection connection = null;
 
-        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
-            PreparedStatement ps = connection.prepareStatement("select * from bucket where user_id = ?;");
-            ps.setString(1, user.getId().toString());
-            ResultSet rs = ps.executeQuery();
+        try {
+            connection = dataSource.getConnection();
+            connection.setAutoCommit(false);
 
-            if (rs.next()) {
-                bucket = new Bucket(rs.getInt("id"), user);
-            } else {
-                ps = connection.prepareStatement("insert into bucket (user_id) values (?);", Statement.RETURN_GENERATED_KEYS);
-                ps.setString(1, user.getId().toString());
-                ps.executeUpdate();
-                ResultSet generatedKeys = ps.getGeneratedKeys();
-                if (generatedKeys.next()) {
-                    bucket = new Bucket(generatedKeys.getInt(1), user);
+            User user = this.authService.getAuthUser();
+
+            if (Objects.nonNull(user)) {
+                bucket = getBucket(user);
+
+                if (Objects.isNull(bucket)) {
+                    createBucket(user);
+                    bucket = getBucket(user);
                 }
             }
-        } catch (SQLException e) {
-            log.error("Bucket SQL error: {}", e.getMessage());
+            connection.commit();
+
+        } catch (Exception e) {
+            log.error("Get or create bucket exception: {}", e.getMessage());
+            try {
+                if (Objects.nonNull(connection)) {
+                    connection.rollback();
+                    connection.close();
+                }
+            } catch (SQLException ex) {
+                log.error("Rollback exception: {}", ex.getMessage());
+            }
         }
+
+        return bucket;
+    }
+
+    private Bucket getBucket(User user) {
+        Bucket bucket = null;
+        Connection connection = null;
+
+        try {
+            connection = dataSource.getConnection();
+            connection.setAutoCommit(false);
+
+            bucket = jdbcTemplate.queryForObject(
+                    "select * from bucket where user_id = ?",
+                    new Object[]{user.getId().toString()},
+                    (rs, rowNum) -> new Bucket(rs.getInt("id"), user)
+            );
+            connection.commit();
+
+        } catch (Exception e) {
+            log.info("Bucket not found: {}", e.getMessage());
+            try {
+                if (Objects.nonNull(connection)) {
+                    connection.rollback();
+                    connection.close();
+                }
+            } catch (SQLException ex) {
+                log.error("Rollback exception: {}", ex.getMessage());
+            }
+        }
+
+        return bucket;
+    }
+
+    private void createBucket(User user) {
+        jdbcTemplate.update("insert into bucket (user_id) values (?)", user.getId().toString());
     }
 
     public boolean addProduct(Product product, Integer count) {
         checkInput(product, count);
+        boolean result = false;
 
-        int countOnWarehouse = warehouse.countProductById(product.getId());
-        if (countOnWarehouse < count) {
-            throw new SoManyProductsException();
+        Connection connection = null;
+
+        try {
+            connection = dataSource.getConnection();
+            connection.setAutoCommit(false);
+
+            int countOnWarehouse = warehouseRepository.countProductById(product.getId());
+            if (countOnWarehouse < count) {
+                throw new SoManyProductsException();
+            }
+
+            Product productById = getById(product.getId());
+
+            if (Objects.nonNull(productById)) {
+                increaseCountProduct(product.getId(), count);
+            } else {
+                insertProduct(product.getId(), count);
+            }
+
+            result = warehouseRepository.reduceCountProducts(product.getId(), count);
+            connection.commit();
+
+        } catch (Exception e) {
+            log.error("Add product bucket exception: {}", e.getMessage());
+            try {
+                if (Objects.nonNull(connection)) {
+                    connection.rollback();
+                    connection.close();
+                }
+            } catch (SQLException ex) {
+                log.error("Rollback exception: {}", ex.getMessage());
+            }
         }
 
-        Product productById = getById(product.getId());
-
-        if (Objects.nonNull(productById)) {
-            increaseCountProduct(product.getId(), count);
-        } else {
-            insertProduct(product.getId(), count);
-        }
-
-        return warehouse.reduceCountProducts(product.getId(), count);
+        return result;
     }
 
     private void insertProduct(Integer productId, Integer count) {
-        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
-            PreparedStatement ps = connection.prepareStatement(
-                    "insert into bucket_product (bucket_id, product_id, count) values (?, ?, ?)"
+        Connection connection = null;
+
+        try {
+            connection = dataSource.getConnection();
+            connection.setAutoCommit(false);
+
+            Bucket bucket = getOrCreateBucket();
+            jdbcTemplate.update(
+                    "insert into bucket_product (bucket_id, product_id, count) values (?, ?, ?)",
+                    bucket.getId(),
+                    productId,
+                    count
             );
-            ps.setInt(1, bucket.getId());
-            ps.setInt(2, productId);
-            ps.setInt(3, count);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            log.error("Bucket SQL error: {}", e.getMessage());
+            connection.commit();
+
+        } catch (Exception e) {
+            log.error("Insert product bucket exception: {}", e.getMessage());
+            try {
+                if (Objects.nonNull(connection)) {
+                    connection.rollback();
+                    connection.close();
+                }
+            } catch (SQLException ex) {
+                log.error("Rollback exception: {}", ex.getMessage());
+            }
         }
     }
 
@@ -82,71 +172,131 @@ public class BucketRepository extends BaseRepository implements Serializable {
 
     public void removeProduct(Product product, Integer count) {
         checkInput(product, count);
+        Connection connection = null;
 
-        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
-            PreparedStatement ps = connection.prepareStatement(
-                    "select * from bucket_product where bucket_id = ? and product_id = ?;"
+        try {
+            connection = dataSource.getConnection();
+            connection.setAutoCommit(false);
+
+            Bucket bucket = getOrCreateBucket();
+            Integer countFromDb = jdbcTemplate.queryForObject(
+                    "select count from bucket_product where bucket_id = ? and product_id = ?",
+                    Integer.class,
+                    bucket.getId(),
+                    product.getId()
             );
-            ps.setInt(1, bucket.getId());
-            ps.setInt(2, product.getId());
-            ResultSet rs = ps.executeQuery();
 
-            if (rs.next()) {
-                int currentCount = rs.getInt("count") - count;
+            if (Objects.nonNull(countFromDb)) {
+                int currentCount = countFromDb - count;
                 if (currentCount <= 0) {
-                    updateCountProduct(product.getId(), rs.getInt("count"));
+                    updateCountProduct(product.getId(), countFromDb);
                     deleteFromBucket(product.getId());
-                    warehouse.increaseCountProducts(product.getId(), rs.getInt("count"));
+                    warehouseRepository.increaseCountProducts(product.getId(), countFromDb);
                 } else {
                     updateCountProduct(product.getId(), currentCount);
-                    warehouse.increaseCountProducts(product.getId(), count);
+                    warehouseRepository.increaseCountProducts(product.getId(), count);
                 }
             } else {
                 throw new ProductNotFoundException();
             }
-        } catch (SQLException e) {
-            log.error("Bucket DELETE SQL error: {}", e.getMessage());
+            connection.commit();
+
+        } catch (Exception e) {
+            log.error("Remove product bucket exception: {}", e.getMessage());
+            try {
+                if (Objects.nonNull(connection)) {
+                    connection.rollback();
+                    connection.close();
+                }
+            } catch (SQLException ex) {
+                log.error("Rollback exception: {}", ex.getMessage());
+            }
         }
     }
 
     private void updateCountProduct(Integer productId, Integer count) {
-        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
-            PreparedStatement ps = connection.prepareStatement(
-                    "update bucket_product set count = ? where bucket_id = ? and product_id = ?;"
+        Connection connection = null;
+
+        try {
+            connection = dataSource.getConnection();
+            connection.setAutoCommit(false);
+
+            Bucket bucket = getOrCreateBucket();
+            jdbcTemplate.update(
+                    "update bucket_product set count = ? where bucket_id = ? and product_id = ?",
+                    count,
+                    bucket.getId(),
+                    productId
             );
-            ps.setInt(1, count);
-            ps.setInt(2, bucket.getId());
-            ps.setInt(3, productId);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            log.error("Bucket SQL error: {}", e.getMessage());
+            connection.commit();
+
+        } catch (Exception e) {
+            log.error("Update product bucket exception: {}", e.getMessage());
+            try {
+                if (Objects.nonNull(connection)) {
+                    connection.rollback();
+                    connection.close();
+                }
+            } catch (SQLException ex) {
+                log.error("Rollback exception: {}", ex.getMessage());
+            }
         }
     }
 
     private void increaseCountProduct(Integer productId, Integer count) {
-        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
-            PreparedStatement ps = connection.prepareStatement(
-                    "update bucket_product set count = count + ? where bucket_id = ? and product_id = ?;"
+        Connection connection = null;
+
+        try {
+            connection = dataSource.getConnection();
+            connection.setAutoCommit(false);
+
+            Bucket bucket = getOrCreateBucket();
+            jdbcTemplate.update(
+                    "update bucket_product set count = count + ? where bucket_id = ? and product_id = ?",
+                    count,
+                    bucket.getId(),
+                    productId
             );
-            ps.setInt(1, count);
-            ps.setInt(2, bucket.getId());
-            ps.setInt(3, productId);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            log.error("Bucket SQL error: {}", e.getMessage());
+            connection.commit();
+
+        } catch (Exception e) {
+            log.error("Increase product count exception: {}", e.getMessage());
+            try {
+                if (Objects.nonNull(connection)) {
+                    connection.rollback();
+                    connection.close();
+                }
+            } catch (SQLException ex) {
+                log.error("Rollback exception: {}", ex.getMessage());
+            }
         }
     }
 
     private void deleteFromBucket(Integer productId) {
-        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
-            PreparedStatement ps = connection.prepareStatement(
-                    "delete from bucket_product where bucket_id = ? and product_id = ?;"
+        Connection connection = null;
+
+        try {
+            connection = dataSource.getConnection();
+            connection.setAutoCommit(false);
+
+            Bucket bucket = getOrCreateBucket();
+            jdbcTemplate.update(
+                    "delete from bucket_product where bucket_id = ? and product_id = ?",
+                    bucket.getId(),
+                    productId
             );
-            ps.setInt(1, bucket.getId());
-            ps.setInt(2, productId);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            log.error("Bucket SQL error: {}", e.getMessage());
+            connection.commit();
+
+        } catch (Exception e) {
+            log.error("Delete from bucket exception: {}", e.getMessage());
+            try {
+                if (Objects.nonNull(connection)) {
+                    connection.rollback();
+                    connection.close();
+                }
+            } catch (SQLException ex) {
+                log.error("Rollback exception: {}", ex.getMessage());
+            }
         }
     }
 
@@ -155,80 +305,162 @@ public class BucketRepository extends BaseRepository implements Serializable {
     }
 
     public void clear() {
-        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
-            PreparedStatement ps = connection.prepareStatement("delete from bucket_product where bucket_id = ?;");
-            ps.setInt(1, bucket.getId());
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            log.error("Bucket SQL error: {}", e.getMessage());
+        Connection connection = null;
+
+        try {
+            connection = dataSource.getConnection();
+            connection.setAutoCommit(false);
+
+            Bucket bucket = getOrCreateBucket();
+            jdbcTemplate.update("delete from bucket_product where bucket_id = ?", bucket.getId());
+
+            connection.commit();
+
+        } catch (Exception e) {
+            log.error("Bucket clear exception: {}", e.getMessage());
+            try {
+                if (Objects.nonNull(connection)) {
+                    connection.rollback();
+                    connection.close();
+                }
+            } catch (SQLException ex) {
+                log.error("Rollback exception: {}", ex.getMessage());
+            }
         }
     }
 
     public Map<Product, Integer> getAll() {
-        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
-            PreparedStatement ps = connection.prepareStatement("select * from bucket_product where bucket_id = ?");
-            ps.setInt(1, bucket.getId());
-            ResultSet rs = ps.executeQuery();
+        Bucket bucket = getOrCreateBucket();
+        Connection connection = null;
+
+        try {
+            connection = dataSource.getConnection();
+            connection.setAutoCommit(false);
+
+            List<ProductCount> productCounts = jdbcTemplate.query(
+                    "select * from bucket_product where bucket_id = ?",
+                    new Object[]{bucket.getId()},
+                    (rs, rowNum) -> new ProductCount(
+                            getById(rs.getInt("product_id")),
+                            rs.getInt("count")
+                    )
+            );
             bucket.getProducts().clear();
 
-            while (rs.next()) {
-                bucket.getProducts().put(
-                        productRepository.getById(rs.getInt("product_id")),
-                        rs.getInt("count")
-                );
+            productCounts.forEach(pc -> bucket.getProducts().put(
+                    productRepository.getById(pc.getProduct().getId()),
+                    pc.getCount()
+            ));
+            connection.commit();
+
+        } catch (Exception e) {
+            log.error("Get all from bucket exception: {}", e.getMessage());
+            try {
+                if (Objects.nonNull(connection)) {
+                    connection.rollback();
+                    connection.close();
+                }
+            } catch (SQLException ex) {
+                log.error("Rollback exception: {}", ex.getMessage());
             }
-        } catch (SQLException e) {
-            log.error("Bucket SQL error: {}", e.getMessage());
         }
 
         return bucket.getProducts();
     }
 
     public Product getById(Integer productId) {
-        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
-            PreparedStatement ps = connection.prepareStatement(
-                    "select * from bucket_product where bucket_id = ? and product_id = ?");
-            ps.setInt(1, bucket.getId());
-            ps.setInt(2, productId);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return productRepository.getById(rs.getInt("product_id"));
+        Product product = null;
+        Connection connection = null;
+
+        try {
+            connection = dataSource.getConnection();
+            connection.setAutoCommit(false);
+
+            Bucket bucket = getOrCreateBucket();
+            product = jdbcTemplate.queryForObject(
+                    "select * from bucket_product where bucket_id = ? and product_id = ?",
+                    new Object[] {bucket.getId(), productId},
+                    (rs, rowNum) -> productRepository.getById(rs.getInt("product_id"))
+            );
+            connection.commit();
+
+        } catch (Exception e) {
+            log.error("Get by id from bucket exception: {}", e.getMessage());
+            try {
+                if (Objects.nonNull(connection)) {
+                    connection.rollback();
+                    connection.close();
+                }
+            } catch (SQLException ex) {
+                log.error("Rollback exception: {}", ex.getMessage());
             }
-        } catch (SQLException e) {
-            log.error("Bucket SQL error: {}", e.getMessage());
         }
 
-        return null;
+        return product;
     }
 
     public Integer countProducts() {
-        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
-            PreparedStatement ps = connection.prepareStatement("select count(product_id) as quantity from bucket_product where bucket_id = ?");
-            ps.setInt(1, bucket.getId());
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("quantity");
+        Integer count = null;
+        Connection connection = null;
+
+        try {
+            connection = dataSource.getConnection();
+            connection.setAutoCommit(false);
+
+            Bucket bucket = getOrCreateBucket();
+            count = jdbcTemplate.queryForObject(
+                    "select count(product_id) as quantity from bucket_product where bucket_id = ?",
+                    new Object[] {bucket.getId()},
+                    (rs, rowNum) -> rs.getInt("quantity")
+            );
+
+            connection.commit();
+
+        } catch (Exception e) {
+            log.error("Products count bucket exception: {}", e.getMessage());
+            try {
+                if (Objects.nonNull(connection)) {
+                    connection.rollback();
+                    connection.close();
+                }
+            } catch (SQLException ex) {
+                log.error("Rollback exception: {}", ex.getMessage());
             }
-        } catch (SQLException e) {
-            log.error("Bucket SQL error: {}", e.getMessage());
         }
 
-        return 0;
+        return count;
     }
 
     public Integer countItems() {
-        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
-            PreparedStatement ps = connection.prepareStatement("select sum(count) as quantity from bucket_product where bucket_id = ?");
-            ps.setInt(1, bucket.getId());
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("quantity");
+        Integer count = null;
+        Connection connection = null;
+
+        try {
+            connection = dataSource.getConnection();
+            connection.setAutoCommit(false);
+
+            Bucket bucket = getOrCreateBucket();
+            count = jdbcTemplate.queryForObject(
+                    "select sum(count) as quantity from bucket_product where bucket_id = ?",
+                    new Object[] {bucket.getId()},
+                    (rs, numRows) -> rs.getInt("quantity")
+            );
+
+            connection.commit();
+
+        } catch (Exception e) {
+            log.error("Items count bucket exception: {}", e.getMessage());
+            try {
+                if (Objects.nonNull(connection)) {
+                    connection.rollback();
+                    connection.close();
+                }
+            } catch (SQLException ex) {
+                log.error("Rollback exception: {}", ex.getMessage());
             }
-        } catch (SQLException e) {
-            log.error("Bucket SQL error: {}", e.getMessage());
         }
 
-        return 0;
+        return count;
     }
 
     public boolean isEmpty() {
@@ -237,12 +469,34 @@ public class BucketRepository extends BaseRepository implements Serializable {
 
     public BigDecimal calculateTotal(Currency currency) {
         BigDecimal total = BigDecimal.ZERO;
-        for (Map.Entry<Product, Integer> pair : bucket.getProducts().entrySet()) {
-            total = total.add(pair.getKey().getPrice().multiply(BigDecimal.valueOf(pair.getValue())));
+        Connection connection = null;
+
+        try {
+            connection = dataSource.getConnection();
+            connection.setAutoCommit(false);
+
+            for (Map.Entry<Product, Integer> pair : getAll().entrySet()) {
+                total = total.add(pair.getKey().getPrice().multiply(BigDecimal.valueOf(pair.getValue())));
+            }
+
+            total = total.multiply(BigDecimal.valueOf(currency.getMultiplicity()))
+                    .multiply(BigDecimal.valueOf(currency.getCourse()));
+
+            connection.commit();
+
+        } catch (Exception e) {
+            log.error("Calculate total bucket exception: {}", e.getMessage());
+            try {
+                if (Objects.nonNull(connection)) {
+                    connection.rollback();
+                    connection.close();
+                }
+            } catch (SQLException ex) {
+                log.error("Rollback exception: {}", ex.getMessage());
+            }
         }
 
-        return total.multiply(BigDecimal.valueOf(currency.getMultiplicity()))
-                .multiply(BigDecimal.valueOf(currency.getCourse()));
+        return total;
     }
 
     private void checkInput(Product product, Integer count) {

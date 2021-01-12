@@ -1,4 +1,4 @@
-package com.andersen.internetShop.servlet;
+package com.andersen.internetShop.controller;
 
 import com.andersen.internetShop.dao.User;
 
