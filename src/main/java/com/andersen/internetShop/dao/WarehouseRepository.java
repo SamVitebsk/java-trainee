@@ -4,11 +4,9 @@ import com.andersen.internetShop.utils.ExpiryDate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.sql.DataSource;
 import java.lang.reflect.Field;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -20,36 +18,18 @@ import java.util.Objects;
 public class WarehouseRepository {
     private final ProductRepository productRepository;
     private final JdbcTemplate jdbcTemplate;
-    private final DataSource dataSource;
 
+    @Transactional
     public void addProduct(Product product, Integer count) {
-        Connection connection = null;
+        count = checkCount(count);
+        checkExpiryDate(product);
 
-        try {
-            connection = dataSource.getConnection();
-            connection.setAutoCommit(false);
+        Product item = getById(product.getId());
 
-            count = checkCount(count);
-            checkExpiryDate(product);
-
-            Product item = getById(product.getId());
-
-            if (Objects.nonNull(item)) {
-                increaseCountProducts(product.getId(), count);
-            } else {
-                insertProduct(product.getId(), count);
-            }
-            connection.commit();
-        } catch (Exception e) {
-            log.error("Warehouse add product exception: {}", e.getMessage());
-            try {
-                if (Objects.nonNull(connection)) {
-                    connection.rollback();
-                    connection.close();
-                }
-            } catch (SQLException ex) {
-                log.error("Rollback exception: {}", ex.getMessage());
-            }
+        if (Objects.nonNull(item)) {
+            increaseCountProducts(product.getId(), count);
+        } else {
+            insertProduct(product.getId(), count);
         }
     }
 
@@ -57,147 +37,48 @@ public class WarehouseRepository {
         addProduct(product, 1);
     }
 
-    private void insertProduct(Integer productId, Integer count) {
-        Connection connection = null;
-
-        try {
-            connection = dataSource.getConnection();
-            connection.setAutoCommit(false);
-
-            checkCount(count);
-            jdbcTemplate.update("insert into warehouse (product_id, count) values (?, ?)", productId, count);
-
-            connection.commit();
-        } catch (Exception e) {
-            log.error("Warehouse insert exception: {}", e.getMessage());
-            try {
-                if (Objects.nonNull(connection)) {
-                    connection.rollback();
-                    connection.close();
-                }
-            } catch (SQLException ex) {
-                log.error("Rollback exception: {}", ex.getMessage());
-            }
-        }
+    @Transactional
+    protected void insertProduct(Integer productId, Integer count) {
+        checkCount(count);
+        jdbcTemplate.update("insert into warehouse (product_id, count) values (?, ?)", productId, count);
     }
 
+    @Transactional
     public Product getById(Integer productId, Integer count) {
-        Product product = null;
-        Connection connection = null;
-
-        try {
-            connection = dataSource.getConnection();
-            connection.setAutoCommit(false);
-
-            checkCount(count);
-            product = jdbcTemplate.queryForObject(
-                    "select * from warehouse where product_id = ?",
-                    new Object[]{productId},
-                    (rs, rowNums) -> productRepository.getById(rs.getInt("product_id"))
-            );
-            connection.commit();
-        } catch (Exception e) {
-            log.error("Warehouse get by id exception: {}", e.getMessage());
-            try {
-                if (Objects.nonNull(connection)) {
-                    connection.rollback();
-                    connection.close();
-                }
-            } catch (SQLException ex) {
-                log.error("Rollback exception: {}", ex.getMessage());
-            }
-        }
-
-        return product;
+        return jdbcTemplate.queryForObject(
+                "select * from warehouse where product_id = ?",
+                new Object[]{productId},
+                (rs, rowNums) -> productRepository.getById(rs.getInt("product_id"))
+        );
     }
 
     public Product getById(Integer id) {
         return getById(id, 1);
     }
 
+    @Transactional
     public Integer countItems() {
-        Integer count = 0;
-        Connection connection = null;
-
-        try {
-            connection = dataSource.getConnection();
-            connection.setAutoCommit(false);
-
-            count = jdbcTemplate.queryForObject(
-                    "select sum(count) as total from warehouse",
-                    (rs, i) -> rs.getInt("total")
-            );
-            connection.commit();
-        } catch (Exception e) {
-            log.error("Warehouse items count exception: {}", e.getMessage());
-            try {
-                if (Objects.nonNull(connection)) {
-                    connection.rollback();
-                    connection.close();
-                }
-            } catch (SQLException ex) {
-                log.error("Rollback exception: {}", ex.getMessage());
-            }
-        }
-
-        return count;
+        return jdbcTemplate.queryForObject(
+                "select sum(count) as total from warehouse",
+                (rs, i) -> rs.getInt("total")
+        );
     }
 
+    @Transactional
     public Integer countProducts() {
-        Integer count = 0;
-        Connection connection = null;
-
-        try {
-            connection = dataSource.getConnection();
-            connection.setAutoCommit(false);
-
-            count = jdbcTemplate.queryForObject(
-                    "select count(*) as quantity from warehouse",
-                    (rs, i) -> rs.getInt("quantity")
-            );
-            connection.commit();
-        } catch (Exception e) {
-            log.error("Warehouse products count exception: {}", e.getMessage());
-            try {
-                if (Objects.nonNull(connection)) {
-                    connection.rollback();
-                    connection.close();
-                }
-            } catch (SQLException ex) {
-                log.error("Rollback exception: {}", ex.getMessage());
-            }
-        }
-
-        return count;
+        return jdbcTemplate.queryForObject(
+                "select count(*) as quantity from warehouse",
+                (rs, i) -> rs.getInt("quantity")
+        );
     }
 
+    @Transactional
     public Integer countProductById(Integer productId) {
-        Integer count = 0;
-        Connection connection = null;
-
-        try {
-            connection = dataSource.getConnection();
-            connection.setAutoCommit(false);
-
-            count = jdbcTemplate.queryForObject(
-                    "select count from warehouse where product_id = ?",
-                    new Object[]{productId},
-                    (rs, rowNum) -> rs.getInt("count")
-            );
-            connection.commit();
-        } catch (Exception e) {
-            log.error("Warehouse products count by id exception: {}", e.getMessage());
-            try {
-                if (Objects.nonNull(connection)) {
-                    connection.rollback();
-                    connection.close();
-                }
-            } catch (SQLException ex) {
-                log.error("Rollback exception: {}", ex.getMessage());
-            }
-        }
-
-        return count;
+        return jdbcTemplate.queryForObject(
+                "select count from warehouse where product_id = ?",
+                new Object[]{productId},
+                (rs, rowNum) -> rs.getInt("count")
+        );
     }
 
     public boolean isEmpty() {
@@ -208,116 +89,43 @@ public class WarehouseRepository {
         return count < 0 ? 0 : count;
     }
 
+    @Transactional
     public Map<Product, Integer> getAll() {
         Map<Product, Integer> products = new LinkedHashMap<>();
 
-        Connection connection = null;
-
-        try {
-            connection = dataSource.getConnection();
-            connection.setAutoCommit(false);
-
-            List<ProductCount> productCounts = jdbcTemplate.query(
-                    "select * from warehouse order by product_id",
-                    (rs, rowNum) -> new ProductCount(
-                            getById(rs.getInt("product_id")),
-                            rs.getInt("count")
-                    )
-            );
-            productCounts.forEach(pc -> products.put(pc.getProduct(), pc.getCount()));
-            connection.commit();
-        } catch (Exception e) {
-            log.error("Warehouse get all exception: {}", e.getMessage());
-            try {
-                if (Objects.nonNull(connection)) {
-                    connection.rollback();
-                    connection.close();
-                }
-            } catch (SQLException ex) {
-                log.error("Rollback exception: {}", ex.getMessage());
-            }
-        }
+        List<ProductCount> productCounts = jdbcTemplate.query(
+                "select * from warehouse order by product_id",
+                (rs, rowNum) -> new ProductCount(
+                        getById(rs.getInt("product_id")),
+                        rs.getInt("count")
+                )
+        );
+        productCounts.forEach(pc -> products.put(pc.getProduct(), pc.getCount()));
 
         return products;
     }
 
+    @Transactional
     public boolean update(Integer productId, Integer count) {
-        int rows = 0;
-        Connection connection = null;
-
-        try {
-            connection = dataSource.getConnection();
-            connection.setAutoCommit(false);
-
-            rows = jdbcTemplate.update("update warehouse set count = ? where product_id = ?", count, productId);
-
-            connection.commit();
-        } catch (Exception e) {
-            log.error("Warehouse update exception: {}", e.getMessage());
-            try {
-                if (Objects.nonNull(connection)) {
-                    connection.rollback();
-                    connection.close();
-                }
-            } catch (SQLException ex) {
-                log.error("Rollback exception: {}", ex.getMessage());
-            }
-        }
+        int rows = jdbcTemplate.update("update warehouse set count = ? where product_id = ?", count, productId);
 
         return rows != 0;
     }
 
+    @Transactional
     public boolean increaseCountProducts(Integer productId, Integer count) {
-        int rows = 0;
-        Connection connection = null;
-
-        try {
-            connection = dataSource.getConnection();
-            connection.setAutoCommit(false);
-
-            rows = jdbcTemplate.update(
-                    "update warehouse set count = (count + ?) where product_id = ?",
-                    count,
-                    productId
-            );
-            connection.commit();
-        } catch (Exception e) {
-            log.error("Warehouse increase count exception: {}", e.getMessage());
-            try {
-                if (Objects.nonNull(connection)) {
-                    connection.rollback();
-                    connection.close();
-                }
-            } catch (SQLException ex) {
-                log.error("Rollback exception: {}", ex.getMessage());
-            }
-        }
+        int rows = jdbcTemplate.update(
+                "update warehouse set count = (count + ?) where product_id = ?",
+                count,
+                productId
+        );
 
         return rows != 0;
     }
 
+    @Transactional
     public boolean reduceCountProducts(Integer productId, Integer count) {
-        int rows = 0;
-        Connection connection = null;
-
-        try {
-            connection = dataSource.getConnection();
-            connection.setAutoCommit(false);
-
-            rows = jdbcTemplate.update("update warehouse set count = count - ? where product_id = ?", count, productId);
-
-            connection.commit();
-        } catch (Exception e) {
-            log.error("Warehouse reduce count exception: {}", e.getMessage());
-            try {
-                if (Objects.nonNull(connection)) {
-                    connection.rollback();
-                    connection.close();
-                }
-            } catch (SQLException ex) {
-                log.error("Rollback exception: {}", ex.getMessage());
-            }
-        }
+        int rows = jdbcTemplate.update("update warehouse set count = count - ? where product_id = ?", count, productId);
 
         return rows != 0;
     }

@@ -3,7 +3,7 @@ package com.andersen.internetShop.controller;
 import com.andersen.internetShop.currency.CurrencyCode;
 import com.andersen.internetShop.currency.CurrencyFactory;
 import com.andersen.internetShop.dao.Product;
-import com.andersen.internetShop.dao.User;
+import com.andersen.internetShop.service.AuthService;
 import com.andersen.internetShop.service.BucketService;
 import com.andersen.internetShop.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -15,9 +15,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -25,14 +22,13 @@ import java.util.Map;
 @Slf4j
 @Controller
 @RequiredArgsConstructor
-public class OrderController implements Authenticated {
+public class OrderController {
+    private final AuthService userService;
     private final OrderService orderService;
     private final BucketService bucketService;
 
     @GetMapping("/order/make")
-    protected String orderForm(ModelMap model, HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        getAuthUser(req, resp);
-
+    protected String orderForm(ModelMap model) {
         Map<Product, Integer> products = bucketService.getProducts();
         Map<CurrencyCode, Double> totals = new LinkedHashMap<>();
         for (CurrencyCode currencyCode : CurrencyCode.values()) {
@@ -47,37 +43,29 @@ public class OrderController implements Authenticated {
     }
 
     @PostMapping("/order/make")
-    protected String doPost(@RequestParam Double sum, HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        User user = getAuthUser(req, resp);
-
-        orderService.makeOrder(user, BigDecimal.valueOf(sum), false);
+    protected String doPost(@RequestParam Double sum) {
+        orderService.makeOrder(userService.getAuthUser(), BigDecimal.valueOf(sum), false);
 
         return "redirect:/bucket/clear";
     }
 
     @GetMapping("/order/not-accepted")
-    protected String notAcceptedOrders(ModelMap model, HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        User user = getAuthUser(req, resp);
-
-        model.addAttribute("orders", orderService.getNotAcceptedOrders(user));
+    protected String notAcceptedOrders(ModelMap model) {
+        model.addAttribute("orders", orderService.getNotAcceptedOrders(userService.getAuthUser()));
 
         return "order/not-accepted-orders";
     }
 
     @GetMapping("/order/accept/{orderId}")
-    protected String acceptSavedOrder(@PathVariable Integer orderId, HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        User user = getAuthUser(req, resp);
-
-        orderService.acceptOrder(user, orderId);
+    protected String acceptSavedOrder(@PathVariable Integer orderId) {
+        orderService.acceptOrder(userService.getAuthUser(), orderId);
 
         return "redirect:/order/not-accepted";
     }
 
     @GetMapping("/order/history")
-    protected String allOrders(ModelMap model, HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        User user = getAuthUser(req, resp);
-
-        model.addAttribute("orders", orderService.getOrdersHistory(user));
+    protected String allOrders(ModelMap model) {
+        model.addAttribute("orders", orderService.getOrdersHistory(userService.getAuthUser()));
 
         return "order/orders-history";
     }
