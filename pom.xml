@@ -6,8 +6,11 @@
 
     <groupId>com.andersen</groupId>
     <artifactId>trainee</artifactId>
-    <packaging>war</packaging>
+    <packaging>pom</packaging>
     <version>1</version>
+    <modules>
+        <module>shop</module>
+    </modules>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
