@@ -11,7 +11,6 @@ import com.andersen.internetShop.service.WarehouseService;
 import com.andersen.internetShop.utils.MenuView;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.taglibs.standard.tag.common.sql.DataSourceWrapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.math.BigDecimal;
@@ -204,11 +203,10 @@ public class ConsoleAppController {
         bucketService = new BucketService(
                 warehouseService,
                 new BucketRepository(
-                        new ProductRepository(new JdbcTemplate(), new DataSourceWrapper()),
+                        new ProductRepository(new JdbcTemplate()),
                         warehouseRepository,
                         authService,
-                        new JdbcTemplate(),
-                        new DataSourceWrapper()
+                        new JdbcTemplate()
                 )
         );
     }

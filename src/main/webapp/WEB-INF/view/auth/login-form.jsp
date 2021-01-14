@@ -7,7 +7,7 @@
 <body>
 <h1>Sign in</h1>
 
-<form action="/auth" method="POST">
+<form action="/login" method="POST">
     <label>
         Login: <input type="text" name="login">
     </label>

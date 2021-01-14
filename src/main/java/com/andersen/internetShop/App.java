@@ -5,7 +5,6 @@ import com.andersen.internetShop.dao.*;
 import com.andersen.internetShop.service.AuthService;
 import com.andersen.internetShop.service.OrderService;
 import com.andersen.internetShop.utils.MenuView;
-import org.apache.taglibs.standard.tag.common.sql.DataSourceWrapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import static com.andersen.internetShop.utils.Questioner.getIntAnswer;
@@ -15,9 +14,9 @@ public class App {
 
     public App() {
         consoleAppController = new ConsoleAppController(
-                new AuthService(new UserRepository(new JdbcTemplate(), new DataSourceWrapper())),
-                new WarehouseRepository(new ProductRepository(new JdbcTemplate(), new DataSourceWrapper()), new JdbcTemplate(), new DataSourceWrapper()),
-                new OrderService(new OrderRepository(new JdbcTemplate(), new DataSourceWrapper()))
+                new AuthService(new UserRepository(new JdbcTemplate())),
+                new WarehouseRepository(new ProductRepository(new JdbcTemplate()), new JdbcTemplate()),
+                new OrderService(new OrderRepository(new JdbcTemplate()))
         );
     }
 

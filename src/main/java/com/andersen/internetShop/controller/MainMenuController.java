@@ -1,19 +1,20 @@
 package com.andersen.internetShop.controller;
 
 import com.andersen.internetShop.dao.User;
+import com.andersen.internetShop.service.AuthService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-
 @Controller
-public class MainMenuController implements Authenticated {
+@RequiredArgsConstructor
+public class MainMenuController {
+    private final AuthService userService;
+
     @GetMapping("/main")
-    protected String doGet(ModelMap model, HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        User user = getAuthUser(req, resp);
+    protected String doGet(ModelMap model) {
+        User user = userService.getAuthUser();
 
         model.addAttribute("name", user.getLogin());
         model.addAttribute("id", user.getId().toString());

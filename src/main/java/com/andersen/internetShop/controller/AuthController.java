@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Objects;
 
 @Controller
@@ -21,25 +21,14 @@ public class AuthController {
     }
 
     @PostMapping("/auth")
-    protected String login(HttpServletRequest req) {
-        User user = authService.login(
-                req.getParameter("login"),
-                req.getParameter("password")
-        );
+    protected String login(@RequestParam String login, @RequestParam String password) {
+        User user = authService.login(login, password);
 
         if (Objects.isNull(user)) {
             return "redirect:/auth";
         }
 
-        req.getSession().setAttribute("user", user);
         return "redirect:/main";
-    }
-
-    @GetMapping("/logout")
-    protected String logout(HttpServletRequest req) {
-        req.getSession().setAttribute("user", null);
-
-        return "redirect:/auth";
     }
 
     @GetMapping("/registration")
@@ -48,17 +37,13 @@ public class AuthController {
     }
 
     @PostMapping("/registration")
-    protected String doPost(HttpServletRequest req) {
-        User user = authService.registration(
-                req.getParameter("login"),
-                req.getParameter("password")
-        );
+    protected String doPost(@RequestParam String login, @RequestParam String password) {
+        User user = authService.registration(login, password);
 
         if (Objects.isNull(user)) {
             return "redirect:/auth";
         }
 
-        req.getSession().setAttribute("user", user);
         return "redirect:/main";
     }
 }
