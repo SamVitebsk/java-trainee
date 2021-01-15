@@ -4,28 +4,24 @@ import com.andersen.internetShop.dao.User;
 import com.andersen.internetShop.dao.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @Slf4j
 @RequiredArgsConstructor
 public class AuthService {
     private final UserRepository userRepository;
-    private User user;
 
-    public User login(String login, String password) {
-        user = userRepository.getByLoginAndPassword(login, password);
-        return user;
-    }
-
-    public User registration(String login, String password) {
-        user = userRepository.create(login, password);
-        return user;
+    public void registration(String login, String password) {
+        userRepository.create(login, password);
+        User user = getByLogin(login);
+        log.info("registration {}", user);
     }
 
     public User getAuthUser() {
-        return user;
+        return getByLogin(SecurityContextHolder.getContext().getAuthentication().getName());
     }
 
-    public void exit() {
-        log.info("Good bye");
+    public User getByLogin(String login) {
+        return (User) userRepository.getByLogin(login);
     }
 }
