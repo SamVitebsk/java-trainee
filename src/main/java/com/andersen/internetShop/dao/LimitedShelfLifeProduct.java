@@ -1,17 +1,20 @@
 package com.andersen.internetShop.dao;
 
 import com.andersen.internetShop.utils.ExpiryDate;
+import lombok.NoArgsConstructor;
 
+import javax.persistence.Entity;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-
+@Entity
+@NoArgsConstructor
 public class LimitedShelfLifeProduct extends Product {
     @ExpiryDate(shelfLifeInDays = 5)
     private LocalDate expiryDate;
 
-    LimitedShelfLifeProduct(String name, BigDecimal price, ProductCategory category) {
-        super(name, price, category);
+    LimitedShelfLifeProduct(String name, BigDecimal price) {
+        super(name, price);
     }
 
     @Override

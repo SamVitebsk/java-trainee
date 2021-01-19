@@ -24,7 +24,7 @@ public class OrderRepository {
             rs.getBoolean("accepted")
     );
 
-    public boolean create(Long userId, BigDecimal total, Boolean accepted) {
+    public boolean create(Integer userId, BigDecimal total, Boolean accepted) {
         int rows = jdbcTemplate.update(
                 "insert into orders (user_id, created_at, total, accepted) values (?, ?, ?, ?)",
                 userId,
