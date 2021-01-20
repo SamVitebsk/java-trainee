@@ -13,11 +13,7 @@ import java.util.Map;
 @Table(name = "bucket")
 @Getter
 @ToString
-public class Bucket {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer id;
-
+public class Bucket extends IdentifiableObject {
     @OneToOne
     @JoinColumn(name = "user_id")
     private User user;
@@ -26,7 +22,7 @@ public class Bucket {
     private final Map<Product, Integer> products = new LinkedHashMap<>();
 
     public Bucket(Integer id, User user) {
-        this.id = id;
+        this.setId(id);
         this.user = user;
     }
 }

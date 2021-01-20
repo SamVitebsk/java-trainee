@@ -13,14 +13,12 @@
         <tr>
             <th>Name</th>
             <th>Price</th>
-            <th>Category</th>
             <th>Count</th>
         </tr>
         <c:forEach var="pair" items="${products}" >
             <tr>
                 <td>${pair.key.name}</td>
                 <td>${pair.key.price}</td>
-                <td>${pair.key.category}</td>
                 <td>${pair.value}</td>
             </tr>
         </c:forEach>

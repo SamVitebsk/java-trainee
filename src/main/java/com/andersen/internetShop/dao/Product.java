@@ -8,40 +8,34 @@ import java.math.BigDecimal;
 
 @Entity
 @Table(name = "products")
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 @Getter
 @Setter
 @ToString
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-public class Product implements Serializable {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer id;
-
-    @Column(name = "name")
-    private String name;
+public class Product extends NamedObject implements Serializable {
 
     @Column(name = "price")
     private BigDecimal price;
-
-    @Column(name = "category")
-    @Enumerated(value = EnumType.STRING)
-    private ProductCategory category;
 
     @ManyToOne
     @JoinColumn(name = "country_id")
     private Country country;
 
     public Product(String name, BigDecimal price, ProductCategory category) {
-        this.name = name;
+        this.setName(name);
         this.price = price;
-        this.category = category;
+//        this.category = category;
+    }
+
+    public Product(String name, BigDecimal price) {
+        this.setName(name);
+        this.price = price;
     }
 
     public Product(Integer id, String name, BigDecimal price, ProductCategory category) {
-        this.id = id;
-        this.name = name;
-        this.price = price;
-        this.category = category;
+        this(name, price, category);
+        this.setId(id);
     }
 }

@@ -29,7 +29,7 @@ public class UserRepository {
             user = jdbcTemplate.queryForObject(
                     "select * from customers where login = ? and password = ?",
                     new Object[] {login, passwordEncoder.encode(password)},
-                    (rs, i) -> new User(rs.getLong("id"), login, hash)
+                    (rs, i) -> new User(rs.getInt("id"), login, hash)
             );
         } catch (Exception e) {
             log.error("User get by login and password not found: {}", e.getMessage());

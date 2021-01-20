@@ -13,7 +13,6 @@
     <tr>
         <th>Name</th>
         <th>Price</th>
-        <th>Category</th>
         <th>Count</th>
         <th>Delete from bucket</th>
     </tr>
@@ -21,7 +20,6 @@
         <tr>
             <td>${pair.key.name}</td>
             <td>${pair.key.price}</td>
-            <td>${pair.key.category}</td>
             <td>${pair.value}</td>
             <td><a href="/bucket/delete-product/${pair.key.id}">delete</a></td>
         </tr>

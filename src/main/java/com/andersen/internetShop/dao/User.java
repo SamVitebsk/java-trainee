@@ -1,10 +1,15 @@
 package com.andersen.internetShop.dao;
 
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.Collections;
@@ -15,13 +20,7 @@ import java.util.Collections;
 @Setter
 @ToString
 @NoArgsConstructor
-@AllArgsConstructor
-public class User implements UserDetails {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Setter(AccessLevel.NONE)
-    private Long id;
-
+public class User extends IdentifiableObject implements UserDetails {
     @NotNull
     @Column(name = "login")
     private String login;
@@ -29,6 +28,12 @@ public class User implements UserDetails {
     @NotNull
     @Column(name = "password")
     private String password;
+
+    public User(Integer id, String login, String password) {
+        this.setId(id);
+        this.setLogin(login);
+        this.setPassword(password);
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
